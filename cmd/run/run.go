@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
-	"syscall"
 
 	"github.com/drapon/envy/cmd/root"
 	"github.com/drapon/envy/internal/aws"
@@ -294,19 +293,17 @@ func executeCommand(args []string, envVars []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	// Set process group so we can kill all child processes
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-	}
-
+	// TODO: Implement platform-specific process management
+	// For now, commenting out Unix-specific code for Windows compatibility
+	
 	// Handle signals
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(sigChan, os.Interrupt)
 	go func() {
 		<-sigChan
 		if cmd.Process != nil {
-			// Kill the entire process group
-			syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+			// Use cross-platform signal
+			cmd.Process.Signal(os.Interrupt)
 		}
 	}()
 
