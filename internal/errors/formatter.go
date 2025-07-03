@@ -121,7 +121,7 @@ func (f *Formatter) FormatMultiple(errors []error) string {
 
 	for i, err := range errors {
 		builder.WriteString(fmt.Sprintf("\n%d. ", i+1))
-		
+
 		var envyErr *EnvyError
 		if stderrors.As(err, &envyErr) {
 			builder.WriteString(f.FormatShort(err))
@@ -138,41 +138,41 @@ func (f *Formatter) getSuggestion(err *EnvyError) string {
 	switch err.Code {
 	case ErrConfigNotFound:
 		return "'envy init' コマンドを実行して初期設定を行ってください。"
-	
+
 	case ErrConfigInvalid:
 		return ".envyrcファイルの構文を確認し、YAMLフォーマットが正しいことを確認してください。"
-	
+
 	case ErrAWSAuth:
 		return `以下を確認してください:
   1. AWS認証情報が正しく設定されているか
   2. ~/.aws/credentials ファイルが存在するか
   3. AWS_ACCESS_KEY_ID と AWS_SECRET_ACCESS_KEY 環境変数が設定されているか
   4. IAMロールを使用している場合は、適切な権限があるか`
-	
+
 	case ErrAWSAccessDenied:
 		return `IAMポリシーに以下の権限があることを確認してください:
   - ssm:GetParameter, ssm:PutParameter (Parameter Store使用時)
   - secretsmanager:GetSecretValue, secretsmanager:CreateSecret (Secrets Manager使用時)
   - kms:Decrypt (暗号化されたパラメータ使用時)`
-	
+
 	case ErrFilePermission:
 		if file, ok := err.Details["file"].(string); ok {
 			return fmt.Sprintf("'chmod 600 %s' コマンドでファイルの権限を修正してください。", file)
 		}
 		return "ファイルの権限を確認してください。"
-	
+
 	case ErrInvalidEnvironment:
 		return "'envy list environments' コマンドで利用可能な環境を確認してください。"
-	
+
 	case ErrParameterNotFound, ErrSecretNotFound:
 		return "'envy list' コマンドで利用可能なパラメータを確認してください。"
-	
+
 	case ErrNetworkTimeout, ErrNetworkUnavailable:
 		return "インターネット接続を確認し、プロキシ設定が必要な場合は環境変数 HTTP_PROXY, HTTPS_PROXY を設定してください。"
-	
+
 	case ErrAWSRateLimit:
 		return "しばらく待ってから再試行するか、AWS APIの呼び出し頻度を下げてください。"
-	
+
 	default:
 		return ""
 	}
@@ -224,7 +224,7 @@ func FormatWithContext(err error, ctx ErrorContext) string {
 
 	// Context information
 	builder.WriteString("\nコンテキスト:\n")
-	
+
 	if ctx.Operation != "" {
 		builder.WriteString(fmt.Sprintf("  操作: %s\n", ctx.Operation))
 	}

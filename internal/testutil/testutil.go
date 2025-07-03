@@ -57,35 +57,35 @@ func (h *TestHelper) CreateTempFile(name, content string) string {
 	h.t.Helper()
 	path := filepath.Join(h.TempDir(), name)
 	dir := filepath.Dir(path)
-	
+
 	// Create directory if needed
 	if dir != h.TempDir() {
 		err := os.MkdirAll(dir, 0755)
 		require.NoError(h.t, err)
 	}
-	
+
 	err := os.WriteFile(path, []byte(content), 0644)
 	require.NoError(h.t, err)
-	
+
 	return path
 }
 
 // CreateTempEnvFile creates a temporary .env file
 func (h *TestHelper) CreateTempEnvFile(name string, vars map[string]string) string {
 	h.t.Helper()
-	
+
 	var content strings.Builder
 	for key, value := range vars {
 		content.WriteString(fmt.Sprintf("%s=%s\n", key, value))
 	}
-	
+
 	return h.CreateTempFile(name, content.String())
 }
 
 // SetupEnvVars sets up environment variables for testing
 func (h *TestHelper) SetupEnvVars(vars map[string]string) {
 	h.t.Helper()
-	
+
 	// Save original values
 	original := make(map[string]string)
 	for key := range vars {
@@ -93,12 +93,12 @@ func (h *TestHelper) SetupEnvVars(vars map[string]string) {
 			original[key] = val
 		}
 	}
-	
+
 	// Set new values
 	for key, value := range vars {
 		os.Setenv(key, value)
 	}
-	
+
 	// Add cleanup
 	h.AddCleanup(func() {
 		for key := range vars {
@@ -159,7 +159,7 @@ func (b *TestEnvBuilder) Build(h *TestHelper) {
 	if len(b.vars) > 0 {
 		h.SetupEnvVars(b.vars)
 	}
-	
+
 	// Create files
 	for path, content := range b.files {
 		h.CreateTempFile(path, content)
@@ -335,9 +335,9 @@ func NewGoldenFile(t *testing.T, dir string) *GoldenFile {
 // Assert compares actual output with golden file
 func (g *GoldenFile) Assert(name string, actual []byte) {
 	g.t.Helper()
-	
+
 	goldenPath := filepath.Join(g.dir, name+".golden")
-	
+
 	if g.update {
 		err := os.MkdirAll(g.dir, 0755)
 		require.NoError(g.t, err)
@@ -346,12 +346,12 @@ func (g *GoldenFile) Assert(name string, actual []byte) {
 		g.t.Logf("Updated golden file: %s", goldenPath)
 		return
 	}
-	
+
 	expected, err := os.ReadFile(goldenPath)
 	if os.IsNotExist(err) {
 		g.t.Fatalf("Golden file does not exist: %s (run with UPDATE_GOLDEN=true to create)", goldenPath)
 	}
 	require.NoError(g.t, err)
-	
+
 	require.Equal(g.t, string(expected), string(actual), "output should match golden file")
 }

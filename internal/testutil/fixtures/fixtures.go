@@ -11,18 +11,18 @@ import (
 
 // EnvFiles provides sample .env file contents
 var EnvFiles = struct {
-	Simple       string
-	Complex      string
-	Large        string
-	Empty        string
-	Comments     string
-	Invalid      string
-	Multiline    string
-	Sensitive    string
-	Development  string
-	Production   string
-	Staging      string
-	WithErrors   string
+	Simple      string
+	Complex     string
+	Large       string
+	Empty       string
+	Comments    string
+	Invalid     string
+	Multiline   string
+	Sensitive   string
+	Development string
+	Production  string
+	Staging     string
+	WithErrors  string
 }{
 	Simple: `# Simple environment file
 APP_NAME=envy-test
@@ -201,24 +201,24 @@ var Configs = struct {
 		Project:            "complete-project",
 		DefaultEnvironment: "production",
 		AWS: config.AWSConfig{
-			Service:    "parameter_store",
-			Region:     "us-west-2",
-			Profile:    "production",
+			Service: "parameter_store",
+			Region:  "us-west-2",
+			Profile: "production",
 		},
 		Environments: map[string]config.Environment{
 			"development": {
-				Files: []string{".env.development", ".env.local"},
-				Path: "/apps/myapp/dev",
+				Files:             []string{".env.development", ".env.local"},
+				Path:              "/apps/myapp/dev",
 				UseSecretsManager: false,
 			},
 			"staging": {
-				Files: []string{".env.staging"},
-				Path: "/apps/myapp/staging",
+				Files:             []string{".env.staging"},
+				Path:              "/apps/myapp/staging",
 				UseSecretsManager: true,
 			},
 			"production": {
-				Files: []string{".env.production"},
-				Path: "/apps/myapp/prod",
+				Files:             []string{".env.production"},
+				Path:              "/apps/myapp/prod",
 				UseSecretsManager: false,
 			},
 		},
@@ -250,8 +250,8 @@ var Configs = struct {
 	WithMapping: &config.Config{
 		Project: "mapping-project",
 		AWS: config.AWSConfig{
-			Service:    "parameter_store",
-			Region:     "us-east-1",
+			Service: "parameter_store",
+			Region:  "us-east-1",
 		},
 	},
 }
@@ -282,13 +282,13 @@ var EnvData = struct {
 	},
 
 	Sensitive: map[string]string{
-		"DATABASE_PASSWORD":   "super-secret-password",
-		"API_KEY":             "sk_test_1234567890abcdef",
-		"JWT_SECRET":          "my-jwt-secret-key",
-		"AWS_ACCESS_KEY_ID":   "AKIAIOSFODNN7EXAMPLE",
+		"DATABASE_PASSWORD":     "super-secret-password",
+		"API_KEY":               "sk_test_1234567890abcdef",
+		"JWT_SECRET":            "my-jwt-secret-key",
+		"AWS_ACCESS_KEY_ID":     "AKIAIOSFODNN7EXAMPLE",
 		"AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-		"ENCRYPTION_KEY":      "AES256:1234567890abcdef1234567890abcdef",
-		"PRIVATE_KEY":         "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBg...\n-----END PRIVATE KEY-----",
+		"ENCRYPTION_KEY":        "AES256:1234567890abcdef1234567890abcdef",
+		"PRIVATE_KEY":           "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBg...\n-----END PRIVATE KEY-----",
 	},
 
 	Large: generateLargeEnvData(500),

@@ -201,7 +201,7 @@ func (b *BatchProcessor) processBatch(ctx context.Context, items []interface{}, 
 
 			// Send result
 			resultChan <- Result{
-				Task: &itemTask{item: item},
+				Task:  &itemTask{item: item},
 				Error: err,
 				Time:  duration,
 			}
@@ -223,7 +223,7 @@ func (b *BatchProcessor) processBatch(ctx context.Context, items []interface{}, 
 // createBatches divides items into batches
 func (b *BatchProcessor) createBatches(items []interface{}) [][]interface{} {
 	var batches [][]interface{}
-	
+
 	for i := 0; i < len(items); i += b.batchSize {
 		end := i + b.batchSize
 		if end > len(items) {
@@ -263,9 +263,9 @@ func NewEnvVarBatchProcessor(ctx context.Context, maxWorkers int, opts ...BatchO
 	// AWS API rate limits:
 	// Parameter Store: 1000 TPS for GetParameter, 100 TPS for PutParameter
 	// Secrets Manager: 1500 TPS for GetSecretValue, 50 TPS for PutSecretValue
-	
+
 	processor := NewBatchProcessor(ctx, maxWorkers, opts...)
-	
+
 	return &EnvVarBatchProcessor{
 		BatchProcessor: processor,
 		awsRateLimit:   10 * time.Millisecond, // Conservative rate limit
@@ -290,10 +290,10 @@ func (e *EnvVarBatchProcessor) ProcessEnvVars(
 	}
 
 	// Process with rate limiting
-	poolOpts := append([]PoolOption{
+	poolOpts := []PoolOption{
 		WithRateLimit(e.awsRateLimit),
-	})
-	
+	}
+
 	e.pool = NewWorkerPool(ctx, poolOpts...)
 
 	// Process items
@@ -326,8 +326,8 @@ type RateLimitedBatchProcessor struct {
 
 // RateLimiter provides rate limiting functionality
 type RateLimiter struct {
-	rate       int           // requests per second
-	burst      int           // burst capacity
+	rate       int // requests per second
+	burst      int // burst capacity
 	tokens     chan struct{}
 	refillStop chan struct{}
 	mu         sync.Mutex
@@ -417,7 +417,7 @@ func (r *RateLimitedBatchProcessor) ProcessWithRateLimit(
 		if err := r.rateLimiter.Wait(ctx); err != nil {
 			return errors.Wrap(err, errors.ErrNetworkTimeout, "error during rate limit wait")
 		}
-		
+
 		// Process item
 		return fn(ctx, item)
 	}
@@ -448,13 +448,13 @@ func NewAWSBatchProcessor(
 	var rateLimit, burst int
 	switch service {
 	case "parameter_store":
-		rateLimit = 100  // PutParameter limit
-		burst = 200      // Allow some burst
+		rateLimit = 100 // PutParameter limit
+		burst = 200     // Allow some burst
 	case "secrets_manager":
-		rateLimit = 50   // PutSecretValue limit
+		rateLimit = 50 // PutSecretValue limit
 		burst = 100
 	default:
-		rateLimit = 50   // Conservative default
+		rateLimit = 50 // Conservative default
 		burst = 100
 	}
 

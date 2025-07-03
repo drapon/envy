@@ -79,7 +79,7 @@ func (v *Validator) Validate(ctx context.Context, vars map[string]string) *Valid
 	// Validate each variable against its rules
 	for varName, varRule := range v.rules.Variables {
 		value, exists := vars[varName]
-		
+
 		// Check if required (but skip if already checked in required list)
 		if varRule.Required && !exists && !requiredMap[varName] {
 			result.Errors = append(result.Errors, ValidationError{
@@ -87,7 +87,7 @@ func (v *Validator) Validate(ctx context.Context, vars map[string]string) *Valid
 				Message:  fmt.Sprintf("Required variable %s is missing", varName),
 				Type:     "missing_required",
 			})
-			
+
 			// Suggest fix if default value is available
 			if varRule.Default != "" {
 				result.Fixes = append(result.Fixes, Fix{
@@ -194,46 +194,46 @@ func (v *Validator) validateType(name, value string, rule *VariableRule) error {
 	case "string":
 		// String is always valid
 		return nil
-	
+
 	case "int":
 		if _, err := strconv.Atoi(value); err != nil {
 			return fmt.Errorf("variable %s must be an integer", name)
 		}
-	
+
 	case "float":
 		if _, err := strconv.ParseFloat(value, 64); err != nil {
 			return fmt.Errorf("variable %s must be a float", name)
 		}
-	
+
 	case "bool":
 		lower := strings.ToLower(value)
 		if lower != "true" && lower != "false" && lower != "1" && lower != "0" {
 			return fmt.Errorf("variable %s must be a boolean (true/false/1/0)", name)
 		}
-	
+
 	case "url":
 		u, err := url.Parse(value)
 		if err != nil || u.Scheme == "" || u.Host == "" {
 			return fmt.Errorf("variable %s must be a valid URL", name)
 		}
-	
+
 	case "email":
 		emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 		if !emailRegex.MatchString(value) {
 			return fmt.Errorf("variable %s must be a valid email address", name)
 		}
-	
+
 	case "json":
 		var js json.RawMessage
 		if err := json.Unmarshal([]byte(value), &js); err != nil {
 			return fmt.Errorf("variable %s must be valid JSON", name)
 		}
-	
+
 	default:
 		// Unknown type, skip validation
 		return nil
 	}
-	
+
 	return nil
 }
 
@@ -242,11 +242,11 @@ func (v *Validator) validatePattern(name, value, pattern string) error {
 	if err != nil {
 		return fmt.Errorf("invalid regex pattern for variable %s: %w", name, err)
 	}
-	
+
 	if !regex.MatchString(value) {
 		return fmt.Errorf("variable %s does not match required pattern", name)
 	}
-	
+
 	return nil
 }
 
@@ -256,7 +256,7 @@ func (v *Validator) validateEnum(name, value string, allowed []string) error {
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("variable %s has invalid value '%s'", name, value)
 }
 
@@ -266,11 +266,11 @@ func (v *Validator) validateRange(name, value string, rule *VariableRule) error 
 		if err != nil {
 			return nil // Type validation will catch this
 		}
-		
+
 		if rule.Min != nil && val < int(*rule.Min) {
 			return fmt.Errorf("variable %s value %d is less than minimum %d", name, val, int(*rule.Min))
 		}
-		
+
 		if rule.Max != nil && val > int(*rule.Max) {
 			return fmt.Errorf("variable %s value %d is greater than maximum %d", name, val, int(*rule.Max))
 		}
@@ -279,16 +279,16 @@ func (v *Validator) validateRange(name, value string, rule *VariableRule) error 
 		if err != nil {
 			return nil // Type validation will catch this
 		}
-		
+
 		if rule.Min != nil && val < *rule.Min {
 			return fmt.Errorf("variable %s value %.2f is less than minimum %.2f", name, val, *rule.Min)
 		}
-		
+
 		if rule.Max != nil && val > *rule.Max {
 			return fmt.Errorf("variable %s value %.2f is greater than maximum %.2f", name, val, *rule.Max)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -307,13 +307,13 @@ func (v *Validator) isCommonVariable(name string) bool {
 		"NODE_ENV", "DEBUG", "LOG_LEVEL", "SECRET_KEY",
 		"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION",
 	}
-	
+
 	for _, c := range common {
 		if strings.EqualFold(name, c) {
 			return true
 		}
 	}
-	
+
 	// Check for common patterns
 	lowerName := strings.ToLower(name)
 	patterns := []string{"_key", "_secret", "_token", "_url", "_host", "_port"}
@@ -322,6 +322,6 @@ func (v *Validator) isCommonVariable(name string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }

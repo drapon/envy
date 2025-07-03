@@ -15,15 +15,15 @@ import (
 )
 
 var (
-	from         string
-	to           string
-	file1        string
-	file2        string
-	format       string
-	changes      string
-	environment  string
-	showValues   bool
-	colorOutput  bool
+	from        string
+	to          string
+	file1       string
+	file2       string
+	format      string
+	changes     string
+	environment string
+	showValues  bool
+	colorOutput bool
 )
 
 // diffCmd represents the diff command
@@ -51,7 +51,7 @@ or between different environments or files.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(diffCmd)
-	
+
 	// Add flags specific to diff command
 	diffCmd.Flags().StringVar(&from, "from", "local", "Source environment or 'local'")
 	diffCmd.Flags().StringVar(&to, "to", "aws", "Target environment or 'aws'")
@@ -189,10 +189,10 @@ func getAWSVariables(ctx context.Context, cfg *config.Config, envName string) (m
 }
 
 type DiffResult struct {
-	Added      map[string]string
-	Deleted    map[string]string
-	Modified   map[string][2]string // [old, new]
-	Unchanged  map[string]string
+	Added     map[string]string
+	Deleted   map[string]string
+	Modified  map[string][2]string // [old, new]
+	Unchanged map[string]string
 }
 
 func calculateDiff(from, to map[string]string) *DiffResult {
@@ -320,7 +320,7 @@ func displayJSONDiff(diff *DiffResult, source1, source2 string) error {
 
 	if showValues {
 		fmt.Println("  \"changes\": {")
-		
+
 		if len(diff.Added) > 0 {
 			fmt.Println("    \"added\": {")
 			keys := sortedKeys(diff.Added)
@@ -360,7 +360,7 @@ func displayJSONDiff(diff *DiffResult, source1, source2 string) error {
 			keys := sortedKeysModified(diff.Modified)
 			for i, key := range keys {
 				values := diff.Modified[key]
-				fmt.Printf("      \"%s\": {\"old\": \"%s\", \"new\": \"%s\"}", 
+				fmt.Printf("      \"%s\": {\"old\": \"%s\", \"new\": \"%s\"}",
 					key, maskValue(key, values[0]), maskValue(key, values[1]))
 				if i < len(keys)-1 {
 					fmt.Print(",")
@@ -405,15 +405,15 @@ func maskValue(key, value string) string {
 func isSensitiveKey(key string) bool {
 	lowerKey := strings.ToLower(key)
 	sensitivePatterns := []string{
-		"password", "secret", "key", "token", 
+		"password", "secret", "key", "token",
 		"credential", "auth", "private",
 	}
-	
+
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(lowerKey, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }

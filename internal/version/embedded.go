@@ -6,10 +6,10 @@ package version
 const (
 	// Version is the semantic version of the application
 	embeddedVersion = "0.0.0"
-	
+
 	// GitCommit is the git commit hash
 	embeddedGitCommit = ""
-	
+
 	// BuildDate is the build timestamp
 	embeddedBuildDate = "2025-07-02T00:24:03Z"
 )

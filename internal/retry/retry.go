@@ -119,7 +119,7 @@ func (r *Retryer) DoWithNotify(ctx context.Context, operation Operation, notify 
 	}
 
 	var lastErr error
-	
+
 	for attempt := 1; attempt <= r.config.MaxAttempts; attempt++ {
 		// Check context before attempting
 		if err := ctx.Err(); err != nil {
@@ -162,7 +162,7 @@ func (r *Retryer) DoWithNotify(ctx context.Context, operation Operation, notify 
 	}
 
 	// All retries exhausted
-	return errors.Wrap(lastErr, errors.GetErrorCode(lastErr), 
+	return errors.Wrap(lastErr, errors.GetErrorCode(lastErr),
 		fmt.Sprintf("operation failed after %d attempts", r.config.MaxAttempts))
 }
 

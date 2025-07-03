@@ -95,7 +95,7 @@ func (fs *FileStorage) Get(key string) (*CacheEntry, error) {
 	defer fs.mu.RUnlock()
 
 	filePath := fs.getFilePath(key)
-	
+
 	// ファイルの存在確認
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil, nil // エントリが存在しない
@@ -114,7 +114,7 @@ func (fs *FileStorage) Get(key string) (*CacheEntry, error) {
 	if err != nil {
 		return nil, errors.New(errors.ErrFileRead, "ファイル情報の取得に失敗").WithCause(err)
 	}
-	
+
 	// 権限が適切でない場合は削除
 	if fileInfo.Mode().Perm() != 0600 {
 		fs.logger.Warn("不適切なファイル権限を検出、削除します",
@@ -125,7 +125,7 @@ func (fs *FileStorage) Get(key string) (*CacheEntry, error) {
 	}
 
 	var entry CacheEntry
-	
+
 	// JSON形式のデータを復号化してデシリアライズ
 	if err := fs.deserializeEntry(data, &entry); err != nil {
 		fs.logger.Warn("キャッシュエントリのデシリアライズに失敗",
@@ -149,7 +149,7 @@ func (fs *FileStorage) Set(key string, entry *CacheEntry) error {
 	defer fs.mu.Unlock()
 
 	filePath := fs.getFilePath(key)
-	
+
 	// ディレクトリの作成
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0700); err != nil {
@@ -195,7 +195,7 @@ func (fs *FileStorage) Delete(key string) error {
 	defer fs.mu.Unlock()
 
 	filePath := fs.getFilePath(key)
-	
+
 	if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
 		return errors.New(errors.ErrFileWrite, "キャッシュファイルの削除に失敗").
 			WithCause(err).
@@ -219,7 +219,7 @@ func (fs *FileStorage) Clear() error {
 		if err != nil {
 			return err
 		}
-		
+
 		if !info.IsDir() && strings.HasSuffix(path, ".cache") {
 			if removeErr := os.Remove(path); removeErr != nil {
 				fs.logger.Warn("キャッシュファイルの削除に失敗",
@@ -254,7 +254,7 @@ func (fs *FileStorage) Cleanup() error {
 		if err != nil {
 			return err
 		}
-		
+
 		if !info.IsDir() && strings.HasSuffix(path, ".cache") {
 			// ファイルを読み込んで期限をチェック
 			data, readErr := os.ReadFile(path)
@@ -307,11 +307,11 @@ func (fs *FileStorage) getFilePath(key string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(key))
 	hashStr := fmt.Sprintf("%x", hasher.Sum(nil))
-	
+
 	// ディレクトリ階層を作成（パフォーマンスのため）
 	subDir := hashStr[:2]
 	fileName := hashStr[2:] + ".cache"
-	
+
 	return filepath.Join(fs.baseDir, subDir, fileName)
 }
 
@@ -389,7 +389,7 @@ func (fs *FileStorage) deserializeEntry(data []byte, entry *CacheEntry) error {
 		// env.Fileを復元
 		if valueMap, ok := serializable.Value.(map[string]interface{}); ok {
 			envFile := env.NewFile()
-			
+
 			// variablesを復元
 			if variables, ok := valueMap["variables"].(map[string]interface{}); ok {
 				for key, value := range variables {
@@ -398,7 +398,7 @@ func (fs *FileStorage) deserializeEntry(data []byte, entry *CacheEntry) error {
 					}
 				}
 			}
-			
+
 			// orderを復元
 			if order, ok := valueMap["order"].([]interface{}); ok {
 				envFile.Order = make([]string, 0, len(order))
@@ -408,7 +408,7 @@ func (fs *FileStorage) deserializeEntry(data []byte, entry *CacheEntry) error {
 					}
 				}
 			}
-			
+
 			entry.Value = envFile
 		} else {
 			return fmt.Errorf("env.Fileの値の復元に失敗")
@@ -435,7 +435,7 @@ func (fs *FileStorage) encrypt(data []byte) ([]byte, error) {
 
 	// 暗号化
 	ciphertext := fs.gcm.Seal(nil, nonce, data, nil)
-	
+
 	// nonceと暗号化データを結合
 	result := make([]byte, len(nonce)+len(ciphertext))
 	copy(result, nonce)
@@ -518,7 +518,7 @@ func (cm *CacheManager) InvalidateByPrefix(prefix string) error {
 	// 実際のプロダクションでは別途インデックス機能が必要
 	cm.logger.Info("プレフィックスによる無効化が要求されました",
 		zap.String("prefix", prefix))
-	
+
 	// 簡易実装として全キャッシュをクリア
 	return cm.cache.Clear()
 }
@@ -533,7 +533,7 @@ func (cm *CacheManager) Clear() error {
 	return cm.cache.Clear()
 }
 
-// Close はキャッシュマネージャーを閉じる  
+// Close はキャッシュマネージャーを閉じる
 func (cm *CacheManager) Close() error {
 	return cm.cache.Close()
 }

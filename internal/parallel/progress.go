@@ -45,7 +45,7 @@ func NewProgressTracker(total int, description string, showDetails bool) *Progre
 	}
 
 	if showDetails {
-		options = append(options, 
+		options = append(options,
 			progressbar.OptionShowElapsedTimeOnFinish(),
 			progressbar.OptionSetPredictTime(true),
 		)
@@ -72,11 +72,11 @@ func (p *ProgressTracker) IncrementWithError(err error) {
 	p.failed.Add(1)
 	p.completed.Add(1)
 	p.bar.Add(1)
-	
+
 	if p.showDetails {
 		p.mu.Lock()
 		defer p.mu.Unlock()
-		
+
 		// Update description to show errors
 		failed := p.failed.Load()
 		completed := p.completed.Load()
@@ -88,16 +88,16 @@ func (p *ProgressTracker) IncrementWithError(err error) {
 // Finish finishes the progress tracking
 func (p *ProgressTracker) Finish() {
 	p.bar.Finish()
-	
+
 	duration := time.Since(p.startTime)
 	completed := p.completed.Load()
 	failed := p.failed.Load()
 	succeeded := completed - failed
-	
+
 	// Show summary
 	fmt.Printf("\n処理完了: 成功 %d, 失敗 %d, 合計 %d (%.2f秒)\n",
 		succeeded, failed, completed, duration.Seconds())
-	
+
 	// Calculate throughput
 	if duration > 0 {
 		throughput := float64(completed) / duration.Seconds()
@@ -127,13 +127,13 @@ func NewProgressTask(task Task, tracker *ProgressTracker) *ProgressTask {
 // Execute executes the task and updates progress
 func (t *ProgressTask) Execute(ctx context.Context) error {
 	err := t.Task.Execute(ctx)
-	
+
 	if err != nil {
 		t.tracker.IncrementWithError(err)
 	} else {
 		t.tracker.Increment()
 	}
-	
+
 	return err
 }
 
@@ -147,7 +147,7 @@ type ProgressPool struct {
 func NewProgressPool(ctx context.Context, total int, description string, opts ...PoolOption) *ProgressPool {
 	pool := NewWorkerPool(ctx, opts...)
 	tracker := NewProgressTracker(total, description, true)
-	
+
 	return &ProgressPool{
 		WorkerPool: pool,
 		tracker:    tracker,
@@ -181,7 +181,7 @@ func NewBatchProgressProcessor(
 	opts ...BatchOption,
 ) *BatchProgressProcessor {
 	processor := NewBatchProcessor(ctx, maxWorkers, opts...)
-	
+
 	return &BatchProgressProcessor{
 		BatchProcessor: processor,
 		showProgress:   showProgress,
@@ -201,26 +201,26 @@ func (b *BatchProgressProcessor) ProcessWithProgress(
 
 	// Create progress tracker
 	tracker := NewProgressTracker(len(items), description, true)
-	
+
 	// Wrap process function with progress tracking
 	progressFn := func(ctx context.Context, item interface{}) error {
 		err := fn(ctx, item)
-		
+
 		if err != nil {
 			tracker.IncrementWithError(err)
 		} else {
 			tracker.Increment()
 		}
-		
+
 		return err
 	}
 
 	// Process items
 	results, err := b.Process(ctx, items, progressFn)
-	
+
 	// Finish progress tracking
 	tracker.Finish()
-	
+
 	return results, err
 }
 
@@ -234,7 +234,7 @@ type MonitoredPool struct {
 // NewMonitoredPool creates a pool with monitoring
 func NewMonitoredPool(ctx context.Context, interval time.Duration, opts ...PoolOption) *MonitoredPool {
 	pool := NewWorkerPool(ctx, opts...)
-	
+
 	return &MonitoredPool{
 		WorkerPool: pool,
 		interval:   interval,
@@ -265,7 +265,7 @@ func (m *MonitoredPool) monitor() {
 			return
 		case <-ticker.C:
 			processed, failed, activeWorkers := m.GetMetrics()
-			
+
 			log.Debug("プール統計",
 				zap.Int64("processed", processed),
 				zap.Int64("failed", failed),
@@ -278,9 +278,9 @@ func (m *MonitoredPool) monitor() {
 
 // ProgressReporter provides detailed progress reporting
 type ProgressReporter struct {
-	mu          sync.Mutex
-	operations  map[string]*OperationProgress
-	totalOps    int
+	mu           sync.Mutex
+	operations   map[string]*OperationProgress
+	totalOps     int
 	completedOps int
 }
 
@@ -305,7 +305,7 @@ func NewProgressReporter() *ProgressReporter {
 func (r *ProgressReporter) StartOperation(name string, total int) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	r.operations[name] = &OperationProgress{
 		Name:      name,
 		Total:     total,
@@ -318,11 +318,11 @@ func (r *ProgressReporter) StartOperation(name string, total int) {
 func (r *ProgressReporter) UpdateOperation(name string, completed, failed int) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if op, exists := r.operations[name]; exists {
 		op.Completed = completed
 		op.Failed = failed
-		
+
 		if completed >= op.Total {
 			op.EndTime = time.Now()
 			r.completedOps++
@@ -334,19 +334,19 @@ func (r *ProgressReporter) UpdateOperation(name string, completed, failed int) {
 func (r *ProgressReporter) GetReport() string {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	report := fmt.Sprintf("進捗レポート: %d/%d 操作完了\n", r.completedOps, r.totalOps)
-	
+
 	for _, op := range r.operations {
 		status := "進行中"
 		if !op.EndTime.IsZero() {
 			status = fmt.Sprintf("完了 (%.2f秒)", op.EndTime.Sub(op.StartTime).Seconds())
 		}
-		
+
 		report += fmt.Sprintf("  %s: %d/%d (失敗: %d) - %s\n",
 			op.Name, op.Completed, op.Total, op.Failed, status)
 	}
-	
+
 	return report
 }
 
@@ -359,27 +359,27 @@ func (r *ProgressReporter) PrintReport() {
 func ProcessWithProgress(ctx context.Context, tasks []Task, fn func(context.Context, Task) error, description string) ([]Result, error) {
 	// Create progress tracker
 	tracker := NewProgressTracker(len(tasks), description, true)
-	
+
 	// Create results slice
 	results := make([]Result, len(tasks))
-	
+
 	// Process tasks
 	var wg sync.WaitGroup
 	for i, task := range tasks {
 		wg.Add(1)
 		go func(index int, t Task) {
 			defer wg.Done()
-			
+
 			// Execute task
 			err := fn(ctx, t)
-			
+
 			// Update progress
 			if err != nil {
 				tracker.IncrementWithError(err)
 			} else {
 				tracker.Increment()
 			}
-			
+
 			// Store result
 			results[index] = Result{
 				Task:  t,
@@ -387,12 +387,12 @@ func ProcessWithProgress(ctx context.Context, tasks []Task, fn func(context.Cont
 			}
 		}(i, task)
 	}
-	
+
 	// Wait for all tasks to complete
 	wg.Wait()
-	
+
 	// Finish progress tracking
 	tracker.Finish()
-	
+
 	return results, nil
 }

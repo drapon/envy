@@ -205,7 +205,7 @@ func (s *Store) ConvertToEnvVars(parameters []*Parameter, stripPrefix string) ma
 
 	for _, param := range parameters {
 		key := param.Name
-		
+
 		// Strip prefix if specified
 		if stripPrefix != "" && strings.HasPrefix(key, stripPrefix) {
 			key = strings.TrimPrefix(key, stripPrefix)
@@ -213,10 +213,10 @@ func (s *Store) ConvertToEnvVars(parameters []*Parameter, stripPrefix string) ma
 
 		// Convert path separators to underscores
 		key = strings.ReplaceAll(key, "/", "_")
-		
+
 		// Remove leading underscore if present
 		key = strings.TrimPrefix(key, "_")
-		
+
 		// Convert to uppercase
 		key = strings.ToUpper(key)
 

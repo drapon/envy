@@ -34,30 +34,30 @@ const (
 // Init はグローバルロガーを初期化します
 func Init(config *Config) error {
 	cfg := zap.NewProductionConfig()
-	
+
 	// ログレベルの設定
 	level, err := parseLogLevel(config.Level)
 	if err != nil {
 		return fmt.Errorf("ログレベルの解析エラー: %w", err)
 	}
 	cfg.Level = zap.NewAtomicLevelAt(level)
-	
+
 	// エンコーディングの設定
 	cfg.Encoding = config.Format
-	
+
 	// タイムスタンプフォーマット
 	cfg.EncoderConfig.TimeKey = "timestamp"
 	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	
+
 	// 日本語対応のメッセージキー
 	cfg.EncoderConfig.MessageKey = "message"
-	
+
 	// 開発モードの設定
 	if config.Development {
 		cfg = zap.NewDevelopmentConfig()
 		cfg.Level = zap.NewAtomicLevelAt(level)
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		
+
 		// コンソール出力の場合、より読みやすいフォーマットに
 		if config.Format == "console" {
 			cfg.EncoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
@@ -65,7 +65,7 @@ func Init(config *Config) error {
 			}
 		}
 	}
-	
+
 	// 出力先の設定
 	switch config.Output {
 	case "stdout":
@@ -86,20 +86,20 @@ func Init(config *Config) error {
 		cfg.OutputPaths = []string{"stdout"}
 		cfg.ErrorOutputPaths = []string{"stderr"}
 	}
-	
+
 	// ロガーの構築
 	logger, err := cfg.Build()
 	if err != nil {
 		return fmt.Errorf("ロガーの構築エラー: %w", err)
 	}
-	
+
 	// グローバルロガーの設定
 	globalLogger = logger
 	globalSugar = logger.Sugar()
-	
+
 	// zapのグローバルロガーも置き換え
 	zap.ReplaceGlobals(logger)
-	
+
 	return nil
 }
 
@@ -248,22 +248,22 @@ func SetLevel(level LogLevel) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 現在のロガーの設定を取得して、レベルだけ変更
 	cfg := zap.NewProductionConfig()
 	cfg.Level = zap.NewAtomicLevelAt(zapLevel)
-	
+
 	// 新しいロガーを作成
 	logger, err := cfg.Build()
 	if err != nil {
 		return fmt.Errorf("ロガーの再構築エラー: %w", err)
 	}
-	
+
 	// グローバルロガーを更新
 	globalLogger = logger
 	globalSugar = logger.Sugar()
 	zap.ReplaceGlobals(logger)
-	
+
 	return nil
 }
 

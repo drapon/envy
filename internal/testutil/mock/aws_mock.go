@@ -37,27 +37,27 @@ func NewMockSSMClient() *MockSSMClient {
 func (m *MockSSMClient) GetParameter(ctx context.Context, params *ssm.GetParameterInput, optFns ...func(*ssm.Options)) (*ssm.GetParameterOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.getCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["GetParameter:"+*params.Name]; ok {
 		return nil, err
 	}
-	
+
 	param, exists := m.parameters[*params.Name]
 	if !exists {
 		return nil, &ssmtypes.ParameterNotFound{
 			Message: aws.String(fmt.Sprintf("Parameter %s not found", *params.Name)),
 		}
 	}
-	
+
 	// Handle decryption
 	if params.WithDecryption != nil && *params.WithDecryption && param.Type == ssmtypes.ParameterTypeSecureString {
 		// In real SSM, this would decrypt the value
 		// For testing, we'll just return the value as-is
 	}
-	
+
 	return &ssm.GetParameterOutput{
 		Parameter: param,
 	}, nil
@@ -67,14 +67,14 @@ func (m *MockSSMClient) GetParameter(ctx context.Context, params *ssm.GetParamet
 func (m *MockSSMClient) PutParameter(ctx context.Context, params *ssm.PutParameterInput, optFns ...func(*ssm.Options)) (*ssm.PutParameterOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.putCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["PutParameter:"+*params.Name]; ok {
 		return nil, err
 	}
-	
+
 	// Create or update parameter
 	version := int64(1)
 	if existing, exists := m.parameters[*params.Name]; exists {
@@ -85,12 +85,12 @@ func (m *MockSSMClient) PutParameter(ctx context.Context, params *ssm.PutParamet
 		}
 		version = existing.Version + 1
 	}
-	
+
 	paramType := ssmtypes.ParameterTypeString
 	if params.Type != "" {
 		paramType = params.Type
 	}
-	
+
 	m.parameters[*params.Name] = &ssmtypes.Parameter{
 		Name:             params.Name,
 		Type:             paramType,
@@ -99,7 +99,7 @@ func (m *MockSSMClient) PutParameter(ctx context.Context, params *ssm.PutParamet
 		LastModifiedDate: aws.Time(time.Now()),
 		DataType:         aws.String("text"),
 	}
-	
+
 	return &ssm.PutParameterOutput{
 		Version: version,
 	}, nil
@@ -109,22 +109,22 @@ func (m *MockSSMClient) PutParameter(ctx context.Context, params *ssm.PutParamet
 func (m *MockSSMClient) DeleteParameter(ctx context.Context, params *ssm.DeleteParameterInput, optFns ...func(*ssm.Options)) (*ssm.DeleteParameterOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.deleteCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["DeleteParameter:"+*params.Name]; ok {
 		return nil, err
 	}
-	
+
 	if _, exists := m.parameters[*params.Name]; !exists {
 		return nil, &ssmtypes.ParameterNotFound{
 			Message: aws.String(fmt.Sprintf("Parameter %s not found", *params.Name)),
 		}
 	}
-	
+
 	delete(m.parameters, *params.Name)
-	
+
 	return &ssm.DeleteParameterOutput{}, nil
 }
 
@@ -132,20 +132,20 @@ func (m *MockSSMClient) DeleteParameter(ctx context.Context, params *ssm.DeleteP
 func (m *MockSSMClient) GetParametersByPath(ctx context.Context, params *ssm.GetParametersByPathInput, optFns ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	m.listCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["GetParametersByPath:"+*params.Path]; ok {
 		return nil, err
 	}
-	
+
 	var result []ssmtypes.Parameter
 	prefix := *params.Path
 	if !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}
-	
+
 	for name, param := range m.parameters {
 		if strings.HasPrefix(name, prefix) {
 			// Check if recursive or direct children only
@@ -160,29 +160,29 @@ func (m *MockSSMClient) GetParametersByPath(ctx context.Context, params *ssm.Get
 			}
 		}
 	}
-	
+
 	// Handle pagination
 	startIndex := 0
 	if params.NextToken != nil {
 		// Simple pagination: use token as index
 		fmt.Sscanf(*params.NextToken, "%d", &startIndex)
 	}
-	
+
 	maxResults := 10
 	if params.MaxResults != nil {
 		maxResults = int(*params.MaxResults)
 	}
-	
+
 	endIndex := startIndex + maxResults
 	if endIndex > len(result) {
 		endIndex = len(result)
 	}
-	
+
 	var nextToken *string
 	if endIndex < len(result) {
 		nextToken = aws.String(fmt.Sprintf("%d", endIndex))
 	}
-	
+
 	return &ssm.GetParametersByPathOutput{
 		Parameters: result[startIndex:endIndex],
 		NextToken:  nextToken,
@@ -195,7 +195,7 @@ func (m *MockSSMClient) GetParametersByPath(ctx context.Context, params *ssm.Get
 func (m *MockSSMClient) SetParameter(name, value string, paramType ssmtypes.ParameterType) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.parameters[name] = &ssmtypes.Parameter{
 		Name:             aws.String(name),
 		Type:             paramType,
@@ -210,7 +210,7 @@ func (m *MockSSMClient) SetParameter(name, value string, paramType ssmtypes.Para
 func (m *MockSSMClient) SetError(operation, name string, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.errors[operation+":"+name] = err
 }
 
@@ -218,7 +218,7 @@ func (m *MockSSMClient) SetError(operation, name string, err error) {
 func (m *MockSSMClient) ClearErrors() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.errors = make(map[string]error)
 }
 
@@ -226,7 +226,7 @@ func (m *MockSSMClient) ClearErrors() {
 func (m *MockSSMClient) GetCallCounts() (get, put, delete, list int) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	return m.getCallCount, m.putCallCount, m.deleteCallCount, m.listCallCount
 }
 
@@ -234,7 +234,7 @@ func (m *MockSSMClient) GetCallCounts() (get, put, delete, list int) {
 func (m *MockSSMClient) Reset() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.parameters = make(map[string]*ssmtypes.Parameter)
 	m.errors = make(map[string]error)
 	m.getCallCount = 0
@@ -269,21 +269,21 @@ func NewMockSecretsManagerClient() *MockSecretsManagerClient {
 func (m *MockSecretsManagerClient) GetSecretValue(ctx context.Context, params *secretsmanager.GetSecretValueInput, optFns ...func(*secretsmanager.Options)) (*secretsmanager.GetSecretValueOutput, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	m.getCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["GetSecretValue:"+*params.SecretId]; ok {
 		return nil, err
 	}
-	
+
 	value, exists := m.secretValues[*params.SecretId]
 	if !exists {
 		return nil, &types.ResourceNotFoundException{
 			Message: aws.String(fmt.Sprintf("Secret %s not found", *params.SecretId)),
 		}
 	}
-	
+
 	return &secretsmanager.GetSecretValueOutput{
 		ARN:          aws.String(fmt.Sprintf("arn:aws:secretsmanager:us-east-1:123456789012:secret:%s", *params.SecretId)),
 		Name:         params.SecretId,
@@ -297,29 +297,29 @@ func (m *MockSecretsManagerClient) GetSecretValue(ctx context.Context, params *s
 func (m *MockSecretsManagerClient) CreateSecret(ctx context.Context, params *secretsmanager.CreateSecretInput, optFns ...func(*secretsmanager.Options)) (*secretsmanager.CreateSecretOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.createCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["CreateSecret:"+*params.Name]; ok {
 		return nil, err
 	}
-	
+
 	if _, exists := m.secretValues[*params.Name]; exists {
 		return nil, &types.ResourceExistsException{
 			Message: aws.String(fmt.Sprintf("Secret %s already exists", *params.Name)),
 		}
 	}
-	
+
 	m.secrets[*params.Name] = &types.SecretVersionsListEntry{
-		VersionId:    aws.String("AWSCURRENT"),
-		CreatedDate:  aws.Time(time.Now()),
+		VersionId:   aws.String("AWSCURRENT"),
+		CreatedDate: aws.Time(time.Now()),
 	}
-	
+
 	if params.SecretString != nil {
 		m.secretValues[*params.Name] = *params.SecretString
 	}
-	
+
 	return &secretsmanager.CreateSecretOutput{
 		ARN:       aws.String(fmt.Sprintf("arn:aws:secretsmanager:us-east-1:123456789012:secret:%s", *params.Name)),
 		Name:      params.Name,
@@ -331,24 +331,24 @@ func (m *MockSecretsManagerClient) CreateSecret(ctx context.Context, params *sec
 func (m *MockSecretsManagerClient) UpdateSecret(ctx context.Context, params *secretsmanager.UpdateSecretInput, optFns ...func(*secretsmanager.Options)) (*secretsmanager.UpdateSecretOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.updateCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["UpdateSecret:"+*params.SecretId]; ok {
 		return nil, err
 	}
-	
+
 	if _, exists := m.secretValues[*params.SecretId]; !exists {
 		return nil, &types.ResourceNotFoundException{
 			Message: aws.String(fmt.Sprintf("Secret %s not found", *params.SecretId)),
 		}
 	}
-	
+
 	if params.SecretString != nil {
 		m.secretValues[*params.SecretId] = *params.SecretString
 	}
-	
+
 	return &secretsmanager.UpdateSecretOutput{
 		ARN:       aws.String(fmt.Sprintf("arn:aws:secretsmanager:us-east-1:123456789012:secret:%s", *params.SecretId)),
 		Name:      params.SecretId,
@@ -360,27 +360,27 @@ func (m *MockSecretsManagerClient) UpdateSecret(ctx context.Context, params *sec
 func (m *MockSecretsManagerClient) DeleteSecret(ctx context.Context, params *secretsmanager.DeleteSecretInput, optFns ...func(*secretsmanager.Options)) (*secretsmanager.DeleteSecretOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.deleteCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["DeleteSecret:"+*params.SecretId]; ok {
 		return nil, err
 	}
-	
+
 	if _, exists := m.secretValues[*params.SecretId]; !exists {
 		return nil, &types.ResourceNotFoundException{
 			Message: aws.String(fmt.Sprintf("Secret %s not found", *params.SecretId)),
 		}
 	}
-	
+
 	delete(m.secrets, *params.SecretId)
 	delete(m.secretValues, *params.SecretId)
-	
+
 	return &secretsmanager.DeleteSecretOutput{
-		ARN:            aws.String(fmt.Sprintf("arn:aws:secretsmanager:us-east-1:123456789012:secret:%s", *params.SecretId)),
-		Name:           params.SecretId,
-		DeletionDate:   aws.Time(time.Now().Add(30 * 24 * time.Hour)), // 30 days recovery window
+		ARN:          aws.String(fmt.Sprintf("arn:aws:secretsmanager:us-east-1:123456789012:secret:%s", *params.SecretId)),
+		Name:         params.SecretId,
+		DeletionDate: aws.Time(time.Now().Add(30 * 24 * time.Hour)), // 30 days recovery window
 	}, nil
 }
 
@@ -388,14 +388,14 @@ func (m *MockSecretsManagerClient) DeleteSecret(ctx context.Context, params *sec
 func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context, params *secretsmanager.ListSecretsInput, optFns ...func(*secretsmanager.Options)) (*secretsmanager.ListSecretsOutput, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	m.listCallCount++
-	
+
 	// Check for configured error
 	if err, ok := m.errors["ListSecrets"]; ok {
 		return nil, err
 	}
-	
+
 	var secretList []types.SecretListEntry
 	for name := range m.secrets {
 		secretList = append(secretList, types.SecretListEntry{
@@ -404,7 +404,7 @@ func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context, params *secr
 			CreatedDate: aws.Time(time.Now()),
 		})
 	}
-	
+
 	return &secretsmanager.ListSecretsOutput{
 		SecretList: secretList,
 	}, nil
@@ -416,7 +416,7 @@ func (m *MockSecretsManagerClient) ListSecrets(ctx context.Context, params *secr
 func (m *MockSecretsManagerClient) SetSecret(name, value string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.secrets[name] = &types.SecretVersionsListEntry{
 		VersionId:   aws.String("AWSCURRENT"),
 		CreatedDate: aws.Time(time.Now()),
@@ -428,7 +428,7 @@ func (m *MockSecretsManagerClient) SetSecret(name, value string) {
 func (m *MockSecretsManagerClient) SetError(operation, name string, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	key := operation
 	if name != "" {
 		key += ":" + name
@@ -440,7 +440,7 @@ func (m *MockSecretsManagerClient) SetError(operation, name string, err error) {
 func (m *MockSecretsManagerClient) ClearErrors() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.errors = make(map[string]error)
 }
 
@@ -448,7 +448,7 @@ func (m *MockSecretsManagerClient) ClearErrors() {
 func (m *MockSecretsManagerClient) GetCallCounts() (get, create, update, delete, list int) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	return m.getCallCount, m.createCallCount, m.updateCallCount, m.deleteCallCount, m.listCallCount
 }
 
@@ -456,7 +456,7 @@ func (m *MockSecretsManagerClient) GetCallCounts() (get, create, update, delete,
 func (m *MockSecretsManagerClient) Reset() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.secrets = make(map[string]*types.SecretVersionsListEntry)
 	m.secretValues = make(map[string]string)
 	m.errors = make(map[string]error)

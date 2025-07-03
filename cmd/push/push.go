@@ -66,7 +66,7 @@ based on your configuration in .envyrc.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(pushCmd)
-	
+
 	// Add flags specific to push command
 	pushCmd.Flags().StringVarP(&environment, "env", "e", "", "Target environment")
 	pushCmd.Flags().StringVarP(&prefix, "prefix", "p", "", "AWS parameter prefix (overrides config)")
@@ -143,7 +143,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	if variables != "" {
 		varsToKeep := strings.Split(variables, ",")
 		filteredFile := env.NewFile()
-		
+
 		for _, varName := range varsToKeep {
 			varName = strings.TrimSpace(varName)
 			if value, exists := envFile.Get(varName); exists {
@@ -152,7 +152,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 				color.PrintWarning("Variable %s not found in local files", varName)
 			}
 		}
-		
+
 		envFile = filteredFile
 	}
 
@@ -221,7 +221,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 	// Push to AWS
 	color.PrintInfo("\nPushing to %s...", getTargetDescription(cfg, envName))
-	
+
 	if parallelMode {
 		// Use parallel push
 		if err := pushParallel(ctx, awsManager, envName, envFile, force); err != nil {
@@ -240,7 +240,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 func showDifferences(local, remote map[string]string) {
 	color.PrintBold("\nDifferences:")
-	
+
 	// Find added variables
 	added := []string{}
 	for key := range local {
@@ -248,7 +248,7 @@ func showDifferences(local, remote map[string]string) {
 			added = append(added, key)
 		}
 	}
-	
+
 	if len(added) > 0 {
 		color.PrintInfo("  Added:")
 		for _, key := range added {
@@ -263,7 +263,7 @@ func showDifferences(local, remote map[string]string) {
 			modified = append(modified, key)
 		}
 	}
-	
+
 	if len(modified) > 0 {
 		color.PrintInfo("  Modified:")
 		for _, key := range modified {
@@ -278,7 +278,7 @@ func showDifferences(local, remote map[string]string) {
 			removed = append(removed, key)
 		}
 	}
-	
+
 	if len(removed) > 0 {
 		color.PrintInfo("  Will remain in remote (not in local):")
 		for _, key := range removed {
@@ -293,24 +293,23 @@ func showDifferences(local, remote map[string]string) {
 
 func confirmPush(count int, envName string) bool {
 	fmt.Printf("\n%s Continue? [y/N]: ", color.FormatWarning(fmt.Sprintf("About to push %d variables to %s.", count, envName)))
-	
+
 	var response string
 	fmt.Scanln(&response)
-	
+
 	response = strings.ToLower(strings.TrimSpace(response))
 	return response == "y" || response == "yes"
 }
-
 
 func getTargetDescription(cfg *config.Config, envName string) string {
 	service := cfg.GetAWSService(envName)
 	path := cfg.GetParameterPath(envName)
 	region := cfg.AWS.Region
-	
+
 	if service == "secrets_manager" {
 		return fmt.Sprintf("AWS Secrets Manager (%s)", region)
 	}
-	
+
 	return fmt.Sprintf("AWS Parameter Store %s (%s)", path, region)
 }
 
@@ -345,7 +344,7 @@ func pushParallel(ctx context.Context, awsManager *aws.Manager, envName string, 
 	var tasks []parallel.Task
 	for _, key := range envFile.SortedKeys() {
 		value, _ := envFile.Get(key)
-		
+
 		// Create task based on service type
 		if service == "secrets_manager" || envConfig.UseSecretsManager {
 			task := createSecretsManagerTask(key, value, path, overwrite, parallelManager)
@@ -358,13 +357,13 @@ func pushParallel(ctx context.Context, awsManager *aws.Manager, envName string, 
 
 	// Create batch processor with progress
 	processor := parallel.NewBatchProgressProcessor(ctx, parallelManager.GetMaxWorkers(), true)
-	
+
 	// Convert tasks to interface slice
 	items := make([]interface{}, len(tasks))
 	for i, task := range tasks {
 		items[i] = task
 	}
-	
+
 	// Process tasks with progress
 	results, err := processor.ProcessWithProgress(
 		ctx,
@@ -442,45 +441,45 @@ func createSecretsManagerTask(key, value, path string, overwrite bool, manager *
 func isSensitive(key string) bool {
 	// Exact matches (case-insensitive)
 	exactMatches := []string{
-		"password", "passwd", "pwd", "secret", "token", 
+		"password", "passwd", "pwd", "secret", "token",
 		"api_key", "apikey", "access_key", "accesskey",
 		"private_key", "privatekey", "auth_token", "authtoken",
 	}
-	
+
 	// Suffix patterns (must end with these)
 	suffixPatterns := []string{
 		"_password", "_passwd", "_pwd", "_secret", "_token",
 		"_key", "_auth", "_credential", "_private",
 	}
-	
+
 	// Prefix patterns (must start with these)
 	prefixPatterns := []string{
 		"secret_", "private_", "auth_",
 	}
-	
+
 	keyLower := strings.ToLower(key)
-	
+
 	// Check exact matches
 	for _, pattern := range exactMatches {
 		if keyLower == pattern {
 			return true
 		}
 	}
-	
+
 	// Check suffix patterns
 	for _, pattern := range suffixPatterns {
 		if strings.HasSuffix(keyLower, pattern) {
 			return true
 		}
 	}
-	
+
 	// Check prefix patterns
 	for _, pattern := range prefixPatterns {
 		if strings.HasPrefix(keyLower, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -488,23 +487,23 @@ func isSensitive(key string) bool {
 func pushWithProgress(ctx context.Context, awsManager *aws.Manager, envName string, envFile *env.File, overwrite bool) error {
 	cfg := awsManager.GetConfig()
 	service := cfg.GetAWSService(envName)
-	
+
 	// For Secrets Manager, use regular push (single operation)
 	if service == "secrets_manager" {
 		return awsManager.PushEnvironment(ctx, envName, envFile, overwrite)
 	}
-	
+
 	// For Parameter Store, show progress for each variable
 	vars := envFile.ToMap()
-	
+
 	// Check if progress should be shown
 	showProgress := !viper.GetBool("quiet") && !noProgress
-	
+
 	if !showProgress || len(vars) == 0 {
 		// Use regular push without progress
 		return awsManager.PushEnvironment(ctx, envName, envFile, overwrite)
 	}
-	
+
 	// Create progress bar
 	bar := progressbar.NewOptions(len(vars),
 		progressbar.OptionSetDescription("Pushing variables to AWS"),
@@ -525,13 +524,13 @@ func pushWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 		}),
 		progressbar.OptionShowElapsedTimeOnFinish(),
 	)
-	
+
 	// Get path
 	path := cfg.GetParameterPath(envName)
 	if !strings.HasSuffix(path, "/") {
 		path = path + "/"
 	}
-	
+
 	// Check for existing parameters if not forcing overwrite
 	existingVars := make(map[string]bool)
 	if !overwrite {
@@ -539,42 +538,42 @@ func pushWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 		// Use the regular push method which includes the interactive prompts
 		return awsManager.PushEnvironment(ctx, envName, envFile, overwrite)
 	}
-	
+
 	// Push each variable with progress update
 	failedVars := []string{}
 	paramStore := awsManager.GetParameterStore()
-	
+
 	for key, value := range vars {
 		// Check if should skip existing
 		if !overwrite && existingVars[key] {
 			bar.Add(1)
 			continue
 		}
-		
+
 		paramName := path + key
-		
+
 		// Determine parameter type
 		paramType := "String"
 		if isSensitive(key) {
 			paramType = "SecureString"
 		}
-		
+
 		// Push parameter
 		err := paramStore.PutParameter(ctx, paramName, value, "", paramType, overwrite)
 		if err != nil {
 			failedVars = append(failedVars, key)
 		}
-		
+
 		bar.Add(1)
 	}
-	
+
 	bar.Finish()
-	
+
 	// Report any failures
 	if len(failedVars) > 0 {
 		return fmt.Errorf("failed to push %d variables: %v", len(failedVars), failedVars)
 	}
-	
+
 	return nil
 }
 
@@ -582,16 +581,16 @@ func pushWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 func checkDuplicates(file *env.File) []string {
 	seen := make(map[string]int)
 	duplicates := []string{}
-	
+
 	for _, key := range file.Keys() {
 		seen[key]++
 	}
-	
+
 	for key, count := range seen {
 		if count > 1 {
 			duplicates = append(duplicates, key)
 		}
 	}
-	
+
 	return duplicates
 }

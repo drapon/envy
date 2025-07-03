@@ -117,7 +117,7 @@ func (w *ConfigWizard) promptYesNo(question string, defaultYes bool) bool {
 	if defaultYes {
 		defaultStr = "y"
 	}
-	
+
 	completer := func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{
 			{Text: "y", Description: "Yes"},
@@ -126,17 +126,17 @@ func (w *ConfigWizard) promptYesNo(question string, defaultYes bool) bool {
 			{Text: "no", Description: "No"},
 		}
 	}
-	
+
 	p := fmt.Sprintf("%s [%s]: ", question, defaultStr)
 	result := prompt.Input(p, completer,
 		prompt.OptionPrefixTextColor(prompt.Blue),
 		prompt.OptionPreviewSuggestionTextColor(prompt.Green),
 	)
-	
+
 	if result == "" {
 		return defaultYes
 	}
-	
+
 	lower := strings.ToLower(strings.TrimSpace(result))
 	return lower == "y" || lower == "yes"
 }
@@ -155,15 +155,15 @@ func (w *ConfigWizard) configureEnvironments() {
 					Files: []string{file},
 					Path:  fmt.Sprintf("/%s/%s/", w.config.Project, envName),
 				}
-				
+
 				// Ask about Secrets Manager for production environments
 				if envName == "prod" || envName == "production" {
 					env.UseSecretsManager = w.promptYesNo(fmt.Sprintf("Use AWS Secrets Manager for %s?", envName), true)
 				}
-				
+
 				w.config.Environments[envName] = env
 			}
-			
+
 			// Set default environment if not already set
 			if w.config.DefaultEnvironment == "dev" {
 				// Pick first environment as default
@@ -249,12 +249,12 @@ func InteractiveInitWithPrompt(projectName string) error {
 	}
 
 	wizard := NewConfigWizard()
-	
+
 	// Set project name if provided
 	if projectName != "" {
 		wizard.config.Project = projectName
 	}
-	
+
 	// Set existing files for wizard
 	wizard.existingFiles = existingFiles
 
@@ -275,7 +275,7 @@ func InteractiveInitWithPrompt(projectName string) error {
 	}
 
 	fmt.Println("\nConfiguration saved to .envyrc")
-	
+
 	// Create example .env files
 	for envName, env := range cfg.Environments {
 		if len(env.Files) > 0 {
@@ -287,7 +287,7 @@ REDIS_URL=redis://localhost:6379
 API_KEY=your-api-key-here
 DEBUG=true
 `, envName, envName)
-				
+
 				if err := os.WriteFile(filename, []byte(content), 0600); err != nil {
 					fmt.Printf("Warning: Failed to create %s: %v\n", filename, err)
 				} else {
@@ -308,7 +308,7 @@ DEBUG=true
 // detectExistingEnvFiles scans for .env files
 func detectExistingEnvFiles() []string {
 	var envFiles []string
-	
+
 	patterns := []string{".env", ".env.*"}
 	for _, pattern := range patterns {
 		matches, err := filepath.Glob(pattern)
@@ -322,14 +322,14 @@ func detectExistingEnvFiles() []string {
 			}
 		}
 	}
-	
+
 	return envFiles
 }
 
 // extractEnvNameFromFile extracts environment name from filename
 func extractEnvNameFromFile(filename string) string {
 	base := filepath.Base(filename)
-	
+
 	switch base {
 	case ".env":
 		return "default"
@@ -338,7 +338,7 @@ func extractEnvNameFromFile(filename string) string {
 	case ".env.production", ".env.prod":
 		return "prod"
 	case ".env.development", ".env.dev":
-		return "dev" 
+		return "dev"
 	case ".env.staging", ".env.stage":
 		return "staging"
 	case ".env.test":

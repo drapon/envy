@@ -76,12 +76,12 @@ type WorkerPool struct {
 	done        chan struct{}
 	wg          sync.WaitGroup
 	rateLimiter <-chan time.Time
-	
+
 	// Metrics
-	processed    atomic.Int64
-	failed       atomic.Int64
+	processed     atomic.Int64
+	failed        atomic.Int64
 	activeWorkers atomic.Int32
-	
+
 	// Context
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -132,7 +132,7 @@ func WithErrorHandler(handler func(task Task, err error)) PoolOption {
 // NewWorkerPool creates a new worker pool
 func NewWorkerPool(ctx context.Context, opts ...PoolOption) *WorkerPool {
 	poolCtx, cancel := context.WithCancel(ctx)
-	
+
 	p := &WorkerPool{
 		maxWorkers: runtime.NumCPU(),
 		bufferSize: 100,
@@ -180,7 +180,7 @@ func NewWorkerPool(ctx context.Context, opts ...PoolOption) *WorkerPool {
 // Start starts the worker pool
 func (p *WorkerPool) Start() {
 	log.Debug("ワーカープール開始")
-	
+
 	// Start workers
 	for i := 0; i < p.maxWorkers; i++ {
 		p.wg.Add(1)
@@ -218,13 +218,13 @@ func (p *WorkerPool) SubmitBatch(tasks []Task) error {
 func (p *WorkerPool) Wait() []Result {
 	// Close task channel to signal no more tasks
 	close(p.tasks)
-	
+
 	// Wait for all workers to finish
 	p.wg.Wait()
-	
+
 	// Close results channel
 	close(p.results)
-	
+
 	// Collect all results
 	var results []Result
 	for result := range p.results {
@@ -285,7 +285,7 @@ func (p *WorkerPool) worker(id int) {
 // executeTask executes a single task with timeout and error handling
 func (p *WorkerPool) executeTask(task Task) {
 	start := time.Now()
-	
+
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(p.ctx, p.timeout)
 	defer cancel()
@@ -327,8 +327,8 @@ func (p *WorkerPool) collectResults() {
 // DynamicWorkerPool is a worker pool that can adjust its size dynamically
 type DynamicWorkerPool struct {
 	*WorkerPool
-	minWorkers     int
-	maxWorkers     int
+	minWorkers         int
+	maxWorkers         int
 	scaleUpThreshold   float64
 	scaleDownThreshold float64
 	scalingInterval    time.Duration
@@ -339,7 +339,7 @@ type DynamicWorkerPool struct {
 func NewDynamicWorkerPool(ctx context.Context, minWorkers, maxWorkers int, opts ...PoolOption) *DynamicWorkerPool {
 	pool := NewWorkerPool(ctx, opts...)
 	pool.maxWorkers = minWorkers // Start with minimum
-	
+
 	return &DynamicWorkerPool{
 		WorkerPool:         pool,
 		minWorkers:         minWorkers,
@@ -380,7 +380,7 @@ func (d *DynamicWorkerPool) adjustWorkerCount() {
 	queueSize := len(d.tasks)
 	activeWorkers := int(d.activeWorkers.Load())
 	currentWorkers := d.maxWorkers
-	
+
 	// Calculate load ratio
 	loadRatio := float64(queueSize) / float64(d.bufferSize)
 

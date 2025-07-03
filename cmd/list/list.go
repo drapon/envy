@@ -62,7 +62,7 @@ including tree view, filtering, and value masking for sensitive variables.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(listCmd)
-	
+
 	// Add flags specific to list command
 	listCmd.Flags().StringVarP(&environment, "env", "e", "", "Specify environment")
 	listCmd.Flags().StringVarP(&source, "source", "s", "both", "Source (local/aws/both)")
@@ -110,11 +110,11 @@ func runList(cmd *cobra.Command, args []string) error {
 		if i > 0 {
 			fmt.Println() // Add spacing between environments
 		}
-		
+
 		if all {
 			color.PrintBold("=== Environment: %s ===", envName)
 		}
-		
+
 		if err := listEnvironment(ctx, cfg, awsManager, envName); err != nil {
 			return fmt.Errorf("failed to list environment %s: %w", envName, err)
 		}
@@ -157,16 +157,16 @@ func listEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 	// Merge and categorize variables
 	allVars := make(map[string]varInfo)
-	
+
 	// Add local variables
 	for key, value := range localVars {
 		if filter != "" && !matchesFilter(key, filter) {
 			continue
 		}
 		allVars[key] = varInfo{
-			Value:      value,
-			Sources:    []string{"local"},
-			LocalOnly:  true,
+			Value:     value,
+			Sources:   []string{"local"},
+			LocalOnly: true,
 		}
 	}
 
@@ -175,7 +175,7 @@ func listEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 		if filter != "" && !matchesFilter(key, filter) {
 			continue
 		}
-		
+
 		if info, exists := allVars[key]; exists {
 			// Variable exists in both
 			info.Sources = append(info.Sources, "aws")
@@ -234,10 +234,10 @@ func displayText(vars map[string]varInfo, envName string) error {
 	// Display variables
 	for _, key := range keys {
 		info := vars[key]
-		
+
 		// Source indicator
 		var sourceIndicator string
-		
+
 		if info.LocalOnly {
 			sourceIndicator = color.FormatSuccess("[local]")
 		} else if info.AWSOnly {
@@ -248,7 +248,7 @@ func displayText(vars map[string]varInfo, envName string) error {
 
 		// Display value
 		displayValue := maskValue(key, info.Value)
-		
+
 		if source == "both" {
 			fmt.Printf("%-40s = %-20s %s\n", key, displayValue, sourceIndicator)
 		} else {
@@ -258,12 +258,12 @@ func displayText(vars map[string]varInfo, envName string) error {
 
 	// Summary
 	color.PrintBold("\nTotal: %d variables", len(vars))
-	
+
 	if source == "both" {
 		localCount := 0
 		awsCount := 0
 		bothCount := 0
-		
+
 		for _, info := range vars {
 			if info.LocalOnly {
 				localCount++
@@ -273,7 +273,7 @@ func displayText(vars map[string]varInfo, envName string) error {
 				bothCount++
 			}
 		}
-		
+
 		fmt.Printf("  Local only: %d %s\n", localCount, color.FormatSuccess("(green)"))
 		fmt.Printf("  AWS only: %d %s\n", awsCount, color.FormatInfo("(blue)"))
 		fmt.Printf("  Both: %d %s\n", bothCount, color.FormatWarning("(yellow)"))
@@ -354,7 +354,7 @@ func displayTreeNode(node *treeNode, indent string, isLast bool) {
 		if node.value != nil {
 			// Leaf node with value
 			displayValue := maskValue(node.name, node.value.Value)
-			
+
 			var colorCode string
 			if node.value.LocalOnly {
 				colorCode = "\033[32m" // Green
@@ -363,7 +363,7 @@ func displayTreeNode(node *treeNode, indent string, isLast bool) {
 			} else {
 				colorCode = "\033[0m" // Default
 			}
-			
+
 			fmt.Printf("%s%s = %s\033[0m\n", colorCode, node.name, displayValue)
 		} else {
 			// Branch node
@@ -382,7 +382,7 @@ func displayTreeNode(node *treeNode, indent string, isLast bool) {
 	for i, childName := range childNames {
 		child := node.children[childName]
 		childIndent := indent
-		
+
 		if node.name != "variables" { // Skip indentation for root
 			if isLast {
 				childIndent += "    "
@@ -390,7 +390,7 @@ func displayTreeNode(node *treeNode, indent string, isLast bool) {
 				childIndent += "│   "
 			}
 		}
-		
+
 		displayTreeNode(child, childIndent, i == len(childNames)-1)
 	}
 }
@@ -416,13 +416,13 @@ func displayJSON(vars map[string]varInfo, envName string) error {
 		varData := map[string]interface{}{
 			"sources": info.Sources,
 		}
-		
+
 		if showValues {
 			varData["value"] = info.Value
 		} else {
 			varData["value"] = maskValue(key, info.Value)
 		}
-		
+
 		output["variables"].(map[string]interface{})[key] = varData
 	}
 
@@ -446,12 +446,12 @@ func maskValue(key, value string) string {
 	if showValues && !isSensitiveKey(key) {
 		return value
 	}
-	
+
 	// Mask value but show first and last character for recognition
 	if len(value) <= 4 {
 		return "***"
 	}
-	
+
 	return value[:1] + "***" + value[len(value)-1:]
 }
 
@@ -462,12 +462,12 @@ func isSensitiveKey(key string) bool {
 		"credential", "auth", "private", "cert",
 		"api_key", "access_key", "secret_key",
 	}
-	
+
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(lowerKey, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }

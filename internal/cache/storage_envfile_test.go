@@ -28,7 +28,7 @@ func TestFileStorage_EnvFile(t *testing.T) {
 		envFile.Set("DATABASE_URL", "postgres://localhost:5432/test")
 		envFile.Set("API_KEY", "test-api-key-123")
 		envFile.Set("DEBUG", "true")
-		
+
 		// 元のOrderを保持
 		expectedOrder := []string{"DATABASE_URL", "API_KEY", "DEBUG"}
 		envFile.Order = expectedOrder

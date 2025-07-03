@@ -24,7 +24,7 @@ type Variable struct {
 // File represents a parsed .env file
 type File struct {
 	Variables map[string]*Variable
-	Order     []string // Maintains original order
+	Order     []string       // Maintains original order
 	Comments  map[int]string // Line number to comment mapping
 }
 
@@ -46,19 +46,19 @@ func Parse(r io.Reader) (*File, error) {
 func ParseWithContext(ctx context.Context, r io.Reader) (*File, error) {
 	file := NewFile()
 	poolManager := memory.GetGlobalPoolManager()
-	
+
 	// Use memory pool for buffer if available
 	var buffer []byte
 	if poolManager != nil && poolManager.GetBytePool() != nil {
 		buffer = poolManager.GetBytePool().Get(8192)
 		defer poolManager.GetBytePool().Put(buffer)
 	}
-	
+
 	scanner := bufio.NewScanner(r)
 	if buffer != nil {
 		scanner.Buffer(buffer, 64*1024) // 64KB max line size
 	}
-	
+
 	lineNum := 0
 
 	// Regex patterns - compiled once
@@ -72,7 +72,7 @@ func ParseWithContext(ctx context.Context, r io.Reader) (*File, error) {
 			return nil, ctx.Err()
 		default:
 		}
-		
+
 		lineNum++
 		line := scanner.Text()
 
@@ -91,7 +91,7 @@ func ParseWithContext(ctx context.Context, r io.Reader) (*File, error) {
 		if matches := varPattern.FindStringSubmatch(line); matches != nil {
 			key := matches[1]
 			value := matches[2]
-			
+
 			// Handle inline comments
 			var comment string
 			if idx := strings.Index(value, " #"); idx != -1 {
@@ -141,7 +141,7 @@ func (f *File) Write(w io.Writer) error {
 func (f *File) WriteWithContext(ctx context.Context, w io.Writer) error {
 	// Use memory-aware writer if threshold is set
 	maw := memory.NewMemoryAwareWriter(w, 50*1024*1024, 8192) // 50MB threshold
-	
+
 	// Build a map of line numbers to content
 	lines := make(map[int]string, len(f.Variables)+len(f.Comments))
 	maxLine := 0
@@ -166,7 +166,7 @@ func (f *File) WriteWithContext(ctx context.Context, w io.Writer) error {
 			return ctx.Err()
 		default:
 		}
-		
+
 		if variable, ok := f.Variables[key]; ok {
 			sb.Reset()
 			sb.WriteString(variable.Key)
@@ -190,7 +190,7 @@ func (f *File) WriteWithContext(ctx context.Context, w io.Writer) error {
 			return ctx.Err()
 		default:
 		}
-		
+
 		if content, ok := lines[i]; ok {
 			if _, err := fmt.Fprintln(maw, content); err != nil {
 				return err
@@ -219,7 +219,6 @@ func (f *File) Get(key string) (string, bool) {
 	}
 	return "", false
 }
-
 
 // Set sets or updates a variable
 func (f *File) Set(key, value string) {
@@ -252,14 +251,14 @@ func (f *File) ToMap() map[string]string {
 	// Use memory pool for map if available
 	poolManager := memory.GetGlobalPoolManager()
 	var result map[string]string
-	
+
 	if poolManager != nil && poolManager.GetMapPool() != nil {
 		result = poolManager.GetMapPool().Get()
 		// Note: caller should return the map to pool when done
 	} else {
 		result = make(map[string]string, len(f.Variables))
 	}
-	
+
 	for key, variable := range f.Variables {
 		result[key] = variable.Value
 	}
@@ -271,7 +270,7 @@ func (f *File) ToMapWithPool() (map[string]string, func()) {
 	poolManager := memory.GetGlobalPoolManager()
 	var result map[string]string
 	var cleanup func()
-	
+
 	if poolManager != nil && poolManager.GetMapPool() != nil {
 		result = poolManager.GetMapPool().Get()
 		cleanup = func() { poolManager.GetMapPool().Put(result) }
@@ -279,7 +278,7 @@ func (f *File) ToMapWithPool() (map[string]string, func()) {
 		result = make(map[string]string, len(f.Variables))
 		cleanup = func() {} // No-op
 	}
-	
+
 	for key, variable := range f.Variables {
 		result[key] = variable.Value
 	}
@@ -346,9 +345,9 @@ func ParseLarge(r io.Reader) (*File, error) {
 func ParseLargeWithContext(ctx context.Context, r io.Reader) (*File, error) {
 	file := NewFile()
 	streamer := memory.NewEnvFileStreamer()
-	
+
 	result := streamer.StreamParse(ctx, r)
-	
+
 	for {
 		select {
 		case variable, ok := <-result.Variables:
@@ -361,7 +360,7 @@ func ParseLargeWithContext(ctx context.Context, r io.Reader) (*File, error) {
 					return nil, err
 				}
 			}
-			
+
 			// Add variable to file
 			file.Variables[variable.Key] = &Variable{
 				Key:     variable.Key,
@@ -370,10 +369,10 @@ func ParseLargeWithContext(ctx context.Context, r io.Reader) (*File, error) {
 				Line:    variable.Line,
 			}
 			file.Order = append(file.Order, variable.Key)
-			
+
 		case err := <-result.Errors:
 			return nil, err
-			
+
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
@@ -403,36 +402,36 @@ func (sp *StreamProcessor) ProcessStream(ctx context.Context, r io.Reader, callb
 			if trimmed == "" || strings.HasPrefix(trimmed, "#") {
 				return nil
 			}
-			
+
 			// Parse variable line
 			if strings.Contains(line, "=") {
 				parts := strings.SplitN(line, "=", 2)
 				if len(parts) == 2 {
 					key := strings.TrimSpace(parts[0])
 					value := strings.TrimSpace(parts[1])
-					
+
 					var comment string
 					if idx := strings.Index(value, " #"); idx != -1 {
 						comment = strings.TrimSpace(value[idx+2:])
 						value = strings.TrimSpace(value[:idx])
 					}
-					
+
 					// Remove quotes
 					value = trimQuotes(value)
-					
+
 					variable := &Variable{
 						Key:     key,
 						Value:   value,
 						Comment: comment,
 					}
-					
+
 					return callback(variable)
 				}
 			}
-			
+
 			return nil
 		},
 	}
-	
+
 	return sp.processor.ProcessReader(ctx, r, options)
 }

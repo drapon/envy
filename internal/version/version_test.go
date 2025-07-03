@@ -7,21 +7,21 @@ import (
 
 func TestGetInfo(t *testing.T) {
 	info := GetInfo()
-	
+
 	if info == nil {
 		t.Fatal("GetInfo() returned nil")
 	}
-	
+
 	// Version should not be empty
 	if info.Version == "" {
 		t.Error("Version should not be empty")
 	}
-	
+
 	// Go version should start with "go"
 	if !strings.HasPrefix(info.GoVersion, "go") {
 		t.Errorf("GoVersion should start with 'go', got: %s", info.GoVersion)
 	}
-	
+
 	// Platform should contain "/"
 	if !strings.Contains(info.Platform, "/") {
 		t.Errorf("Platform should contain '/', got: %s", info.Platform)
@@ -51,7 +51,7 @@ func TestCompare(t *testing.T) {
 		{"different lengths", "2.0", "1.0.0", 1},
 		{"empty parts", "1", "1.0.0", 0},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := Compare(tt.v1, tt.v2)
@@ -75,7 +75,7 @@ func TestIsNewer(t *testing.T) {
 		{"dev version", "1.0.0", "dev", true},
 		{"with v prefix", "v2.0.0", "v1.0.0", true},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := IsNewer(tt.v1, tt.v2)
@@ -89,11 +89,11 @@ func TestIsNewer(t *testing.T) {
 func TestString(t *testing.T) {
 	info := GetInfo()
 	str := info.String()
-	
+
 	if !strings.Contains(str, "envy version") {
 		t.Errorf("String() should contain 'envy version', got: %s", str)
 	}
-	
+
 	if !strings.Contains(str, info.Version) {
 		t.Errorf("String() should contain version %s, got: %s", info.Version, str)
 	}
@@ -102,7 +102,7 @@ func TestString(t *testing.T) {
 func TestDetailedString(t *testing.T) {
 	info := GetInfo()
 	str := info.DetailedString()
-	
+
 	// Check that all fields are present
 	expectedFields := []string{
 		"envy version",
@@ -112,7 +112,7 @@ func TestDetailedString(t *testing.T) {
 		"Compiler:",
 		"Platform:",
 	}
-	
+
 	for _, field := range expectedFields {
 		if !strings.Contains(str, field) {
 			t.Errorf("DetailedString() should contain '%s', got: %s", field, str)

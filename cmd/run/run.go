@@ -59,7 +59,7 @@ and executes the specified command with those variables available.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(runCmd)
-	
+
 	// Add flags specific to run command
 	runCmd.Flags().StringVarP(&environment, "env", "e", "", "Environment to use")
 	runCmd.Flags().StringSliceVarP(&envFiles, "file", "f", []string{}, "Additional .env files to load")
@@ -92,7 +92,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 func buildEnvironment(ctx context.Context) ([]string, error) {
 	// Create environment manager
 	envManager := env.NewManager(".")
-	
+
 	// Start with current environment if inherit is true
 	envMap := make(map[string]string)
 	if inherit {
@@ -317,7 +317,7 @@ func executeCommand(args []string, envVars []string) error {
 
 	// Wait for command to complete
 	err := cmd.Wait()
-	
+
 	// Handle exit code
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
@@ -342,7 +342,7 @@ func isSensitive(key string) bool {
 		"auth",
 		"credential",
 	}
-	
+
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(lowerKey, pattern) {
 			return true

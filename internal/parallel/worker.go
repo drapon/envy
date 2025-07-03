@@ -13,18 +13,18 @@ import (
 
 // Worker represents a configurable worker for parallel task execution
 type Worker struct {
-	id              int
-	taskQueue       chan Task
-	resultQueue     chan Result
-	retryConfig     *retry.Config
-	errorHandler    func(task Task, err error)
-	beforeExecute   func(task Task)
-	afterExecute    func(task Task, result Result)
-	mu              sync.RWMutex
-	executing       Task
-	startTime       time.Time
-	totalProcessed  int64
-	totalFailed     int64
+	id             int
+	taskQueue      chan Task
+	resultQueue    chan Result
+	retryConfig    *retry.Config
+	errorHandler   func(task Task, err error)
+	beforeExecute  func(task Task)
+	afterExecute   func(task Task, result Result)
+	mu             sync.RWMutex
+	executing      Task
+	startTime      time.Time
+	totalProcessed int64
+	totalFailed    int64
 }
 
 // WorkerConfig holds configuration for a worker
@@ -53,11 +53,11 @@ func NewWorker(id int, taskQueue chan Task, resultQueue chan Result, config *Wor
 	// Set default retry config if not provided
 	if w.retryConfig == nil {
 		w.retryConfig = &retry.Config{
-			MaxAttempts:     3,
-			InitialDelay:    time.Second,
-			MaxDelay:        30 * time.Second,
-			Multiplier:      2,
-			Jitter:          true,
+			MaxAttempts:  3,
+			InitialDelay: time.Second,
+			MaxDelay:     30 * time.Second,
+			Multiplier:   2,
+			Jitter:       true,
 		}
 	}
 
@@ -206,17 +206,17 @@ type WorkerStatus struct {
 
 // WorkerManager manages multiple workers with advanced features
 type WorkerManager struct {
-	workers         []*Worker
-	taskQueue       chan Task
-	resultQueue     chan Result
-	config          *WorkerConfig
-	ctx             context.Context
-	cancel          context.CancelFunc
-	wg              sync.WaitGroup
-	mu              sync.RWMutex
-	isRunning       bool
-	maxQueueSize    int
-	queueTimeout    time.Duration
+	workers      []*Worker
+	taskQueue    chan Task
+	resultQueue  chan Result
+	config       *WorkerConfig
+	ctx          context.Context
+	cancel       context.CancelFunc
+	wg           sync.WaitGroup
+	mu           sync.RWMutex
+	isRunning    bool
+	maxQueueSize int
+	queueTimeout time.Duration
 }
 
 // ManagerOption is a configuration option for WorkerManager

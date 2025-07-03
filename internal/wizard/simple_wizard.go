@@ -41,7 +41,7 @@ func RunSimpleInteractive(projectName string) error {
 
 	wizard := NewSimpleWizard()
 	wizard.existingFiles = existingFiles
-	
+
 	// Set project name if provided
 	if projectName != "" {
 		wizard.config.Project = projectName
@@ -64,7 +64,7 @@ func RunSimpleInteractive(projectName string) error {
 	}
 
 	fmt.Println("\nConfiguration saved to .envyrc")
-	
+
 	// Create example .env files only if no existing files
 	if len(existingFiles) == 0 {
 		for envName, env := range cfg.Environments {
@@ -77,7 +77,7 @@ REDIS_URL=redis://localhost:6379
 API_KEY=your-api-key-here
 DEBUG=true
 `, envName, envName)
-					
+
 					if err := os.WriteFile(filename, []byte(content), 0600); err != nil {
 						fmt.Printf("Warning: Failed to create %s: %v\n", filename, err)
 					} else {
@@ -121,10 +121,10 @@ func (w *SimpleWizard) Run() (*config.Config, error) {
 // promptString prompts for a string value
 func (w *SimpleWizard) promptString(label string, defaultValue string) string {
 	fmt.Printf("%s [%s]: ", label, defaultValue)
-	
+
 	w.scanner.Scan()
 	input := strings.TrimSpace(w.scanner.Text())
-	
+
 	if input == "" {
 		return defaultValue
 	}
@@ -134,21 +134,21 @@ func (w *SimpleWizard) promptString(label string, defaultValue string) string {
 // promptChoice prompts for a choice from options
 func (w *SimpleWizard) promptChoice(label string, options []string, defaultValue string) string {
 	fmt.Printf("%s (%s) [%s]: ", label, strings.Join(options, "/"), defaultValue)
-	
+
 	w.scanner.Scan()
 	input := strings.TrimSpace(w.scanner.Text())
-	
+
 	if input == "" {
 		return defaultValue
 	}
-	
+
 	// Validate choice
 	for _, opt := range options {
 		if input == opt {
 			return input
 		}
 	}
-	
+
 	fmt.Printf("Invalid choice. Using default: %s\n", defaultValue)
 	return defaultValue
 }
@@ -159,16 +159,16 @@ func (w *SimpleWizard) promptYesNo(question string, defaultYes bool) bool {
 	if defaultYes {
 		defaultStr = "y"
 	}
-	
+
 	fmt.Printf("%s (y/n) [%s]: ", question, defaultStr)
-	
+
 	w.scanner.Scan()
 	input := strings.TrimSpace(w.scanner.Text())
-	
+
 	if input == "" {
 		return defaultYes
 	}
-	
+
 	lower := strings.ToLower(input)
 	return lower == "y" || lower == "yes"
 }
@@ -187,16 +187,16 @@ func (w *SimpleWizard) configureEnvironments() {
 					Files: []string{file},
 					Path:  fmt.Sprintf("/%s/%s/", w.config.Project, envName),
 				}
-				
+
 				// Ask about Secrets Manager for production environments
 				if envName == "prod" || envName == "production" {
 					fmt.Printf("\nConfiguring %s environment:\n", envName)
 					env.UseSecretsManager = w.promptYesNo("Use AWS Secrets Manager?", true)
 				}
-				
+
 				w.config.Environments[envName] = env
 			}
-			
+
 			// Set default environment
 			if len(w.config.Environments) > 0 {
 				envNames := []string{}
@@ -212,7 +212,7 @@ func (w *SimpleWizard) configureEnvironments() {
 	// Manual configuration
 	fmt.Println("\nLet's configure your environments.")
 	fmt.Println("Common environments: dev, staging, prod")
-	
+
 	// Add first environment
 	envName := w.promptString("First environment name", "dev")
 	w.addEnvironment(envName)

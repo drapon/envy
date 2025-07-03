@@ -190,7 +190,7 @@ func TestAWSBatchProcessor(t *testing.T) {
 	// Test Secrets Manager processor
 	smProcessor := NewAWSBatchProcessor(ctx, "secrets_manager", 2)
 	assert.NotNil(t, smProcessor)
-	
+
 	// Process function
 	processFn := func(ctx context.Context, item interface{}) error {
 		// Simulate AWS API call
@@ -231,7 +231,7 @@ func TestBatchProcessorRetry(t *testing.T) {
 	// Process function that fails twice then succeeds
 	processFn := func(ctx context.Context, item interface{}) error {
 		num := item.(int)
-		
+
 		mu.Lock()
 		attempts[num]++
 		count := attempts[num]

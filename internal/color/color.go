@@ -15,7 +15,7 @@ var (
 	Warning = color.New(color.FgYellow).SprintFunc()
 	Info    = color.New(color.FgCyan).SprintFunc()
 	Bold    = color.New(color.Bold).SprintFunc()
-	
+
 	// Formatted print functions
 	SuccessF = color.New(color.FgGreen).SprintfFunc()
 	ErrorF   = color.New(color.FgRed).SprintfFunc()

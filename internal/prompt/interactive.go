@@ -19,13 +19,13 @@ func InteractiveSelect(title string, options []string, defaultIndex int) (int, e
 		Options: options,
 		Default: options[defaultIndex],
 	}
-	
+
 	err := survey.AskOne(prompt, &selected, survey.WithIcons(func(icons *survey.IconSet) {
 		icons.SelectFocus.Text = "▶"
 		icons.MarkedOption.Text = "✓"
 		icons.UnmarkedOption.Text = " "
 	}))
-	
+
 	if err != nil {
 		// If user cancels, return the default
 		if err == terminal.InterruptErr {
@@ -33,14 +33,14 @@ func InteractiveSelect(title string, options []string, defaultIndex int) (int, e
 		}
 		return -1, err
 	}
-	
+
 	// Find the selected index
 	for i, opt := range options {
 		if opt == selected {
 			return i, nil
 		}
 	}
-	
+
 	return defaultIndex, nil
 }
 
@@ -52,24 +52,24 @@ func InteractiveMultiSelect(title string, options []string, defaults []int) ([]i
 			defaultOptions[i] = options[idx]
 		}
 	}
-	
+
 	var selected []string
 	prompt := &survey.MultiSelect{
 		Message: title,
 		Options: options,
 		Default: defaultOptions,
 	}
-	
+
 	err := survey.AskOne(prompt, &selected, survey.WithIcons(func(icons *survey.IconSet) {
 		icons.SelectFocus.Text = "▶"
 		icons.MarkedOption.Text = "[✓]"
 		icons.UnmarkedOption.Text = "[ ]"
 	}))
-	
+
 	if err != nil {
 		return defaults, err
 	}
-	
+
 	// Convert selected strings back to indices
 	indices := []int{}
 	for _, sel := range selected {
@@ -80,7 +80,7 @@ func InteractiveMultiSelect(title string, options []string, defaults []int) ([]i
 			}
 		}
 	}
-	
+
 	return indices, nil
 }
 
@@ -91,26 +91,26 @@ func InteractiveConfirm(message string, defaultYes bool) bool {
 		Message: message,
 		Default: defaultYes,
 	}
-	
+
 	err := survey.AskOne(prompt, &result)
 	if err != nil {
 		return defaultYes
 	}
-	
+
 	return result
 }
 
 // ClearScreen clears the terminal screen
 func ClearScreen() {
 	var cmd *exec.Cmd
-	
+
 	switch runtime.GOOS {
 	case "windows":
 		cmd = exec.Command("cmd", "/c", "cls")
 	default:
 		cmd = exec.Command("clear")
 	}
-	
+
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }

@@ -16,13 +16,13 @@ import (
 
 // CacheEntry はキャッシュエントリの構造体
 type CacheEntry struct {
-	Key         string                 `json:"key"`
-	Value       interface{}            `json:"value"`
-	CreatedAt   time.Time              `json:"created_at"`
-	LastAccessed time.Time             `json:"last_accessed"`
-	TTL         time.Duration          `json:"ttl"`
-	Encrypted   bool                   `json:"encrypted"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Key          string                 `json:"key"`
+	Value        interface{}            `json:"value"`
+	CreatedAt    time.Time              `json:"created_at"`
+	LastAccessed time.Time              `json:"last_accessed"`
+	TTL          time.Duration          `json:"ttl"`
+	Encrypted    bool                   `json:"encrypted"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // IsExpired はエントリが期限切れかどうかを判定
@@ -47,13 +47,13 @@ const (
 
 // CacheConfig はキャッシュの設定
 type CacheConfig struct {
-	Type        CacheType     `json:"type"`
-	TTL         time.Duration `json:"ttl"`
-	MaxSize     int64         `json:"max_size"`     // バイト単位
-	MaxEntries  int           `json:"max_entries"`  // エントリ数
-	CacheDir    string        `json:"cache_dir"`    // キャッシュディレクトリ
-	EncryptionKey string      `json:"-"`            // 暗号化キー（JSONには含めない）
-	Enabled     bool          `json:"enabled"`
+	Type          CacheType     `json:"type"`
+	TTL           time.Duration `json:"ttl"`
+	MaxSize       int64         `json:"max_size"`    // バイト単位
+	MaxEntries    int           `json:"max_entries"` // エントリ数
+	CacheDir      string        `json:"cache_dir"`   // キャッシュディレクトリ
+	EncryptionKey string        `json:"-"`           // 暗号化キー（JSONには含めない）
+	Enabled       bool          `json:"enabled"`
 }
 
 // DefaultCacheConfig はデフォルトの設定を返す
@@ -100,14 +100,14 @@ func (s *CacheStats) HitRate() float64 {
 
 // cacheImpl はキャッシュの実装
 type cacheImpl struct {
-	config   *CacheConfig
-	memory   map[string]*CacheEntry
-	storage  Storage
-	mu       sync.RWMutex
-	stats    *CacheStats
-	stopCh   chan struct{}
-	logger   *zap.Logger
-	closed   bool
+	config    *CacheConfig
+	memory    map[string]*CacheEntry
+	storage   Storage
+	mu        sync.RWMutex
+	stats     *CacheStats
+	stopCh    chan struct{}
+	logger    *zap.Logger
+	closed    bool
 	closeOnce sync.Once
 }
 
@@ -135,7 +135,7 @@ func NewCache(config *CacheConfig) (Cache, error) {
 	// ストレージの初期化
 	var storage Storage
 	var err error
-	
+
 	if config.Type == DiskCache || config.Type == HybridCache {
 		storage, err = NewFileStorage(config.CacheDir, config.EncryptionKey)
 		if err != nil {
@@ -183,11 +183,11 @@ func (c *cacheImpl) Get(key string) (interface{}, bool, error) {
 			c.stats.Misses++
 			return nil, false, nil
 		}
-		
+
 		// アクセス時間を更新
 		entry.LastAccessed = time.Now()
 		c.stats.Hits++
-		
+
 		c.logger.Debug("メモリキャッシュヒット", zap.String("key", c.maskKey(key)))
 		return entry.Value, true, nil
 	}
@@ -208,10 +208,10 @@ func (c *cacheImpl) Get(key string) (interface{}, bool, error) {
 			if c.config.Type == HybridCache {
 				c.memory[key] = entry
 			}
-			
+
 			entry.LastAccessed = time.Now()
 			c.stats.Hits++
-			
+
 			c.logger.Debug("ディスクキャッシュヒット", zap.String("key", c.maskKey(key)))
 			return entry.Value, true, nil
 		}
@@ -241,12 +241,12 @@ func (c *cacheImpl) SetWithMetadata(key string, value interface{}, ttl time.Dura
 	}
 
 	entry := &CacheEntry{
-		Key:         key,
-		Value:       value,
-		CreatedAt:   time.Now(),
+		Key:          key,
+		Value:        value,
+		CreatedAt:    time.Now(),
 		LastAccessed: time.Now(),
-		TTL:         ttl,
-		Metadata:    metadata,
+		TTL:          ttl,
+		Metadata:     metadata,
 	}
 
 	// センシティブデータの判定
@@ -331,7 +331,7 @@ func (c *cacheImpl) Stats() *CacheStats {
 
 	stats := *c.stats // コピーを作成
 	stats.Entries = len(c.memory)
-	
+
 	// メモリ使用量を計算（概算）
 	for _, entry := range c.memory {
 		stats.Size += c.estimateSize(entry)
@@ -416,7 +416,7 @@ func (c *cacheImpl) evictLRU() {
 	// 最も古いアクセス時間のエントリを見つける
 	var oldestKey string
 	var oldestTime time.Time
-	
+
 	for key, entry := range c.memory {
 		if oldestKey == "" || entry.LastAccessed.Before(oldestTime) {
 			oldestKey = key
@@ -455,7 +455,7 @@ func (c *cacheImpl) isSensitiveData(key string, value interface{}, metadata map[
 		"password", "secret", "token", "key", "credential",
 		"パスワード", "秘密", "トークン", "キー", "認証",
 	}
-	
+
 	keyLower := strings.ToLower(key)
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(keyLower, pattern) {
@@ -477,14 +477,14 @@ func (c *cacheImpl) isSensitiveData(key string, value interface{}, metadata map[
 func (c *cacheImpl) estimateSize(entry *CacheEntry) int64 {
 	// 簡易的なサイズ計算
 	size := int64(len(entry.Key))
-	
+
 	// 値のサイズ（文字列の場合）
 	if str, ok := entry.Value.(string); ok {
 		size += int64(len(str))
 	} else {
 		size += 100 // その他の型の場合は概算
 	}
-	
+
 	return size
 }
 

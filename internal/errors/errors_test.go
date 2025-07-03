@@ -38,7 +38,7 @@ func TestEnvyError(t *testing.T) {
 		err := New(ErrFileNotFound, "file not found").
 			WithDetails("file", "/path/to/file").
 			WithDetails("operation", "read")
-		
+
 		assert.Equal(t, "/path/to/file", err.Details["file"])
 		assert.Equal(t, "read", err.Details["operation"])
 	})
@@ -126,12 +126,12 @@ func TestHelperFunctions(t *testing.T) {
 	t.Run("IsRetriable", func(t *testing.T) {
 		// Explicitly retriable
 		assert.True(t, IsRetriable(New(ErrAWSAuth, "").WithRetriable(true)))
-		
+
 		// Implicitly retriable error codes
 		assert.True(t, IsRetriable(New(ErrAWSRateLimit, "")))
 		assert.True(t, IsRetriable(New(ErrAWSTimeout, "")))
 		assert.True(t, IsRetriable(New(ErrNetworkTimeout, "")))
-		
+
 		// Non-retriable
 		assert.False(t, IsRetriable(New(ErrConfigNotFound, "")))
 		assert.False(t, IsRetriable(nil))
@@ -146,22 +146,22 @@ func TestHelperFunctions(t *testing.T) {
 		err := New(ErrFileNotFound, "").
 			WithDetails("file", "test.txt").
 			WithDetails("line", 42)
-		
+
 		details := GetErrorDetails(err)
 		assert.Equal(t, "test.txt", details["file"])
 		assert.Equal(t, 42, details["line"])
-		
+
 		assert.Nil(t, GetErrorDetails(errors.New("random error")))
 	})
 
 	t.Run("Wrap", func(t *testing.T) {
 		cause := errors.New("underlying error")
 		wrapped := Wrap(cause, ErrConfigNotFound, "config error")
-		
+
 		assert.Equal(t, ErrConfigNotFound, wrapped.Code)
 		assert.Equal(t, "config error", wrapped.Message)
 		assert.Equal(t, cause, wrapped.Cause)
-		
+
 		assert.Nil(t, Wrap(nil, ErrConfigNotFound, "config error"))
 	})
 }
@@ -301,7 +301,7 @@ func TestErrorAggregator(t *testing.T) {
 		agg := NewAggregator()
 		err := errors.New("test error")
 		agg.Add(err)
-		
+
 		assert.True(t, agg.HasErrors())
 		assert.Equal(t, err, agg.Error())
 		assert.Len(t, agg.Errors(), 1)
@@ -312,18 +312,18 @@ func TestErrorAggregator(t *testing.T) {
 		err1 := errors.New("error 1")
 		err2 := errors.New("error 2")
 		err3 := errors.New("error 3")
-		
+
 		agg.Add(err1)
 		agg.Add(err2)
 		agg.Add(err3)
 		agg.Add(nil) // Should be ignored
-		
+
 		assert.True(t, agg.HasErrors())
 		assert.Len(t, agg.Errors(), 3)
-		
+
 		aggErr := agg.Error()
 		require.NotNil(t, aggErr)
-		
+
 		var envyErr *EnvyError
 		require.True(t, errors.As(aggErr, &envyErr))
 		assert.Equal(t, ErrInternal, envyErr.Code)
@@ -334,10 +334,10 @@ func TestErrorAggregator(t *testing.T) {
 		agg := NewAggregator()
 		err := errors.New("test error")
 		agg.AddWithContext(err, "failed to process file")
-		
+
 		assert.True(t, agg.HasErrors())
 		aggErr := agg.Error()
-		
+
 		var envyErr *EnvyError
 		require.True(t, errors.As(aggErr, &envyErr))
 		assert.Equal(t, "failed to process file", envyErr.Message)

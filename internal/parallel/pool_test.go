@@ -49,7 +49,7 @@ func TestWorkerPool(t *testing.T) {
 // TestWorkerPoolWithErrors tests error handling
 func TestWorkerPoolWithErrors(t *testing.T) {
 	ctx := context.Background()
-	
+
 	var errorHandlerCalled atomic.Int32
 	pool := NewWorkerPool(ctx,
 		WithMaxWorkers(2),

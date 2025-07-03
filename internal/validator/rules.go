@@ -9,9 +9,9 @@ import (
 
 // Rules represents validation rules for environment variables
 type Rules struct {
-	Required  []string                   `yaml:"required"`
-	Variables map[string]*VariableRule   `yaml:"variables"`
-	Warnings  []WarningRule              `yaml:"warnings"`
+	Required  []string                 `yaml:"required"`
+	Variables map[string]*VariableRule `yaml:"variables"`
+	Warnings  []WarningRule            `yaml:"warnings"`
 }
 
 // VariableRule represents validation rules for a single variable
@@ -90,9 +90,9 @@ func DefaultRules() *Rules {
 				Required: true,
 			},
 			"PORT": {
-				Type: "int",
-				Min:  float64Ptr(1),
-				Max:  float64Ptr(65535),
+				Type:    "int",
+				Min:     float64Ptr(1),
+				Max:     float64Ptr(65535),
 				Default: "3000",
 			},
 			"HOST": {
@@ -108,20 +108,20 @@ func DefaultRules() *Rules {
 				Pattern: "^redis://",
 			},
 			"API_KEY": {
-				Type:      "string",
-				Pattern:   "^[A-Za-z0-9_-]{16,}$",
+				Type:    "string",
+				Pattern: "^[A-Za-z0-9_-]{16,}$",
 			},
 			"SECRET_KEY": {
-				Type:      "string",
-				Pattern:   "^[A-Za-z0-9_-]{32,}$",
+				Type:    "string",
+				Pattern: "^[A-Za-z0-9_-]{32,}$",
 			},
 			"JWT_SECRET": {
-				Type:      "string",
-				Pattern:   "^[A-Za-z0-9_-]{32,}$",
+				Type:    "string",
+				Pattern: "^[A-Za-z0-9_-]{32,}$",
 			},
 			"LOG_LEVEL": {
-				Type: "string",
-				Enum: []string{"debug", "info", "warn", "error", "fatal"},
+				Type:    "string",
+				Enum:    []string{"debug", "info", "warn", "error", "fatal"},
 				Default: "info",
 			},
 			"DEBUG": {
@@ -164,9 +164,9 @@ func DefaultRules() *Rules {
 				Type: "string",
 			},
 			"SMTP_PORT": {
-				Type: "int",
-				Min:  float64Ptr(1),
-				Max:  float64Ptr(65535),
+				Type:    "int",
+				Min:     float64Ptr(1),
+				Max:     float64Ptr(65535),
 				Default: "587",
 			},
 			"SMTP_USERNAME": {

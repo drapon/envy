@@ -42,7 +42,7 @@ environments, and other envy configuration options.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(configureCmd)
-	
+
 	// Add flags specific to configure command
 	configureCmd.Flags().StringVarP(&profileName, "profile", "p", "default", "Configuration profile name")
 	configureCmd.Flags().StringVar(&awsRegion, "aws-region", "", "AWS region")

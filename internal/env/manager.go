@@ -59,7 +59,7 @@ func (m *Manager) LoadFiles(filenames []string) (*File, error) {
 // SaveFile saves an environment file
 func (m *Manager) SaveFile(filename string, file *File) error {
 	path := filepath.Join(m.basePath, filename)
-	
+
 	// Create directory if needed
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -192,7 +192,7 @@ func (d *DiffResult) IsEmpty() bool {
 // Summary returns a summary of the differences
 func (d *DiffResult) Summary() string {
 	parts := []string{}
-	
+
 	if len(d.Added) > 0 {
 		parts = append(parts, fmt.Sprintf("%d added", len(d.Added)))
 	}

@@ -63,7 +63,7 @@ based on your configuration in .envyrc.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(pullCmd)
-	
+
 	// Add flags specific to pull command
 	pullCmd.Flags().StringVarP(&environment, "env", "e", "", "Source environment")
 	pullCmd.Flags().StringVarP(&prefix, "prefix", "p", "", "AWS parameter prefix (overrides config)")
@@ -128,7 +128,7 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	if !viper.GetBool("quiet") && !export && !noProgress {
 		color.PrintInfo("Connecting to %s...", getSourceDescription(cfg, envName))
 	}
-	
+
 	envFile, err := pullEnvironmentWithCache(ctx, awsManager, envName, logger)
 	if err != nil {
 		return fmt.Errorf("pull failed: %w", err)
@@ -181,12 +181,12 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	if !viper.GetBool("quiet") && !export {
 		color.PrintInfo("Writing %d variables to %s...", variableCount, outputFile)
 	}
-	
+
 	// Write the file
 	if err := envFile.WriteFile(outputFile); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
-	
+
 	if !viper.GetBool("quiet") && !export {
 		color.PrintSuccess("✓ File written successfully")
 	}
@@ -221,11 +221,11 @@ func getSourceDescription(cfg *config.Config, envName string) string {
 	service := cfg.GetAWSService(envName)
 	path := cfg.GetParameterPath(envName)
 	region := cfg.AWS.Region
-	
+
 	if service == "secrets_manager" {
 		return fmt.Sprintf("AWS Secrets Manager (%s)", region)
 	}
-	
+
 	return fmt.Sprintf("AWS Parameter Store %s (%s)", path, region)
 }
 
@@ -260,7 +260,7 @@ func loadConfigWithCache() (*config.Config, error) {
 	// Due to complex type issues with config file caching,
 	// we only check file changes and reload each time
 	configFile := viper.GetString("config")
-	
+
 	// Check file modification time
 	if configFile != "" {
 		if stat, err := os.Stat(configFile); err == nil {
@@ -297,22 +297,22 @@ func pullEnvironmentWithCache(ctx context.Context, awsManager *aws.Manager, envN
 		cacheKey,
 		15*time.Minute, // AWS environment variables cache TTL
 		map[string]interface{}{
-			"type":        "aws_environment", 
+			"type":        "aws_environment",
 			"environment": envName,
 			"sensitive":   true, // AWS data is subject to encryption
 		},
 		func() (interface{}, error) {
 			logger.Debug("Fetching AWS environment variables (cache miss)",
 				zap.String("environment", envName))
-			
+
 			// Check if we should show progress
 			showProgress := !viper.GetBool("quiet") && !export && !noProgress
-			
+
 			if showProgress {
 				// Use our custom progress function with English messages
 				return pullWithProgress(ctx, awsManager, envName)
 			}
-			
+
 			// When progress is disabled, use regular pull
 			return awsManager.PullEnvironment(ctx, envName)
 		},
@@ -339,12 +339,12 @@ func pullWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 	cfg := awsManager.GetConfig()
 	service := cfg.GetAWSService(envName)
 	path := cfg.GetParameterPath(envName)
-	
+
 	// For Secrets Manager, use regular pull (single operation)
 	if service == "secrets_manager" {
 		return awsManager.PullEnvironment(ctx, envName)
 	}
-	
+
 	// For Parameter Store, first get the count of parameters
 	paramStore := awsManager.GetParameterStore()
 	parameters, err := paramStore.GetParametersByPath(ctx, path, false, false)
@@ -352,12 +352,12 @@ func pullWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 		// If we can't get the count, fall back to regular pull
 		return awsManager.PullEnvironment(ctx, envName)
 	}
-	
+
 	if len(parameters) == 0 {
 		// No parameters to pull
 		return env.NewFile(), nil
 	}
-	
+
 	// Create progress bar
 	bar := progressbar.NewOptions(len(parameters),
 		progressbar.OptionSetDescription("Fetching variables from AWS"),
@@ -378,7 +378,7 @@ func pullWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 		}),
 		progressbar.OptionShowElapsedTimeOnFinish(),
 	)
-	
+
 	// Pull each parameter
 	envFile := env.NewFile()
 	for _, param := range parameters {
@@ -388,15 +388,15 @@ func pullWithProgress(ctx context.Context, awsManager *aws.Manager, envName stri
 			bar.Add(1)
 			continue // Skip failed parameters
 		}
-		
+
 		// Extract key from path
 		key := strings.TrimPrefix(fullParam.Name, path)
 		key = strings.TrimPrefix(key, "/")
-		
+
 		envFile.Set(key, fullParam.Value)
 		bar.Add(1)
 	}
-	
+
 	bar.Finish()
 	return envFile, nil
 }

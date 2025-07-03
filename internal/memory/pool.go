@@ -9,13 +9,13 @@ import (
 
 // PoolStats holds statistics about pool usage
 type PoolStats struct {
-	Gets      int64
-	Puts      int64
-	Hits      int64
-	Misses    int64
-	Size      int64
-	Capacity  int64
-	MemUsage  int64
+	Gets     int64
+	Puts     int64
+	Hits     int64
+	Misses   int64
+	Size     int64
+	Capacity int64
+	MemUsage int64
 }
 
 // StringPool manages a pool of strings for memory efficiency
@@ -86,7 +86,7 @@ type BytePool struct {
 func NewBytePool(maxSize int64) *BytePool {
 	sizes := []int{64, 256, 1024, 4096, 16384, 65536}
 	pools := make([]*sync.Pool, len(sizes))
-	
+
 	for i, size := range sizes {
 		size := size // Capture for closure
 		pools[i] = &sync.Pool{
@@ -95,7 +95,7 @@ func NewBytePool(maxSize int64) *BytePool {
 			},
 		}
 	}
-	
+
 	return &BytePool{
 		pools:   pools,
 		sizes:   sizes,
@@ -107,7 +107,7 @@ func NewBytePool(maxSize int64) *BytePool {
 // Get returns a byte slice from the pool
 func (p *BytePool) Get(size int) []byte {
 	atomic.AddInt64(&p.stats.Gets, 1)
-	
+
 	// Find the smallest pool that can accommodate the size
 	for i, poolSize := range p.sizes {
 		if size <= poolSize {
@@ -115,7 +115,7 @@ func (p *BytePool) Get(size int) []byte {
 			return p.pools[i].Get().([]byte)[:size]
 		}
 	}
-	
+
 	// Size too large for pools, allocate directly
 	atomic.AddInt64(&p.stats.Misses, 1)
 	return make([]byte, size)
@@ -124,12 +124,12 @@ func (p *BytePool) Get(size int) []byte {
 // Put returns a byte slice to the pool
 func (p *BytePool) Put(b []byte) {
 	atomic.AddInt64(&p.stats.Puts, 1)
-	
+
 	size := cap(b)
 	if size > int(p.maxSize) {
 		return
 	}
-	
+
 	// Find the appropriate pool
 	for i, poolSize := range p.sizes {
 		if size <= poolSize {
@@ -178,12 +178,12 @@ func NewMapPool(maxSize int64) *MapPool {
 func (p *MapPool) Get() map[string]string {
 	atomic.AddInt64(&p.stats.Gets, 1)
 	m := p.pool.Get().(map[string]string)
-	
+
 	// Clear the map
 	for k := range m {
 		delete(m, k)
 	}
-	
+
 	atomic.AddInt64(&p.stats.Hits, 1)
 	return m
 }
@@ -191,17 +191,17 @@ func (p *MapPool) Get() map[string]string {
 // Put returns a map to the pool
 func (p *MapPool) Put(m map[string]string) {
 	atomic.AddInt64(&p.stats.Puts, 1)
-	
+
 	// Don't pool maps that are too large
 	if int64(len(m)) > p.maxSize {
 		return
 	}
-	
+
 	// Clear the map before returning to pool
 	for k := range m {
 		delete(m, k)
 	}
-	
+
 	atomic.AddInt64(&p.stats.Size, 1)
 	p.pool.Put(m)
 }
@@ -234,22 +234,22 @@ type PoolManager struct {
 
 // MemoryStats holds overall memory statistics
 type MemoryStats struct {
-	Alloc        uint64
-	TotalAlloc   uint64
-	Sys          uint64
-	Lookups      uint64
-	Mallocs      uint64
-	Frees        uint64
-	HeapAlloc    uint64
-	HeapSys      uint64
-	HeapIdle     uint64
-	HeapInuse    uint64
-	HeapReleased uint64
-	StackInuse   uint64
-	StackSys     uint64
+	Alloc         uint64
+	TotalAlloc    uint64
+	Sys           uint64
+	Lookups       uint64
+	Mallocs       uint64
+	Frees         uint64
+	HeapAlloc     uint64
+	HeapSys       uint64
+	HeapIdle      uint64
+	HeapInuse     uint64
+	HeapReleased  uint64
+	StackInuse    uint64
+	StackSys      uint64
 	GCCPUFraction float64
-	NumGC        uint32
-	LastGC       time.Time
+	NumGC         uint32
+	LastGC        time.Time
 }
 
 // NewPoolManager creates a new pool manager
@@ -264,11 +264,11 @@ func NewPoolManager(config PoolConfig) *PoolManager {
 		done:       make(chan bool),
 		stats:      &MemoryStats{},
 	}
-	
+
 	if manager.monitoring {
 		go manager.monitorMemory()
 	}
-	
+
 	return manager
 }
 
@@ -331,7 +331,7 @@ func (pm *PoolManager) GetMemoryStats() MemoryStats {
 func (pm *PoolManager) monitorMemory() {
 	ticker := time.NewTicker(pm.gcInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ticker.C:
@@ -346,7 +346,7 @@ func (pm *PoolManager) monitorMemory() {
 func (pm *PoolManager) updateMemoryStats() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	
+
 	pm.mu.Lock()
 	pm.stats.Alloc = m.Alloc
 	pm.stats.TotalAlloc = m.TotalAlloc
@@ -385,7 +385,7 @@ func (pm *PoolManager) Close() {
 // GetAllStats returns statistics for all pools
 func (pm *PoolManager) GetAllStats() map[string]PoolStats {
 	stats := make(map[string]PoolStats)
-	
+
 	if pm.stringPool != nil {
 		stats["string"] = pm.stringPool.Stats()
 	}
@@ -395,7 +395,7 @@ func (pm *PoolManager) GetAllStats() map[string]PoolStats {
 	if pm.mapPool != nil {
 		stats["map"] = pm.mapPool.Stats()
 	}
-	
+
 	return stats
 }
 

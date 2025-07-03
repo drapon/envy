@@ -12,13 +12,13 @@ import (
 
 // Config represents the envy configuration
 type Config struct {
-	Project            string                   `mapstructure:"project"`
-	DefaultEnvironment string                   `mapstructure:"default_environment"`
-	AWS                AWSConfig                `mapstructure:"aws"`
-	Cache              CacheConfig              `mapstructure:"cache"`
-	Memory             MemoryConfig             `mapstructure:"memory"`
-	Performance        PerformanceConfig        `mapstructure:"performance"`
-	Environments       map[string]Environment   `mapstructure:"environments"`
+	Project            string                 `mapstructure:"project"`
+	DefaultEnvironment string                 `mapstructure:"default_environment"`
+	AWS                AWSConfig              `mapstructure:"aws"`
+	Cache              CacheConfig            `mapstructure:"cache"`
+	Memory             MemoryConfig           `mapstructure:"memory"`
+	Performance        PerformanceConfig      `mapstructure:"performance"`
+	Environments       map[string]Environment `mapstructure:"environments"`
 }
 
 // AWSConfig represents AWS-specific configuration
@@ -30,26 +30,26 @@ type AWSConfig struct {
 
 // CacheConfig represents cache-specific configuration
 type CacheConfig struct {
-	Enabled          bool   `mapstructure:"enabled"`
-	Type             string `mapstructure:"type"`               // memory, disk, hybrid
-	TTL              string `mapstructure:"ttl"`                // duration string like "1h", "30m"
-	MaxSize          string `mapstructure:"max_size"`           // size string like "100MB", "1GB"
-	MaxEntries       int    `mapstructure:"max_entries"`        // maximum number of entries
-	Dir              string `mapstructure:"dir"`                // cache directory
-	EncryptionKey    string `mapstructure:"encryption_key"`     // encryption key for sensitive data
+	Enabled           bool   `mapstructure:"enabled"`
+	Type              string `mapstructure:"type"`                // memory, disk, hybrid
+	TTL               string `mapstructure:"ttl"`                 // duration string like "1h", "30m"
+	MaxSize           string `mapstructure:"max_size"`            // size string like "100MB", "1GB"
+	MaxEntries        int    `mapstructure:"max_entries"`         // maximum number of entries
+	Dir               string `mapstructure:"dir"`                 // cache directory
+	EncryptionKey     string `mapstructure:"encryption_key"`      // encryption key for sensitive data
 	EncryptionKeyFile string `mapstructure:"encryption_key_file"` // file containing encryption key
 }
 
 // MemoryConfig represents memory optimization configuration
 type MemoryConfig struct {
-	Enabled          bool          `mapstructure:"enabled"`
-	PoolEnabled      bool          `mapstructure:"pool_enabled"`
-	MonitoringEnabled bool         `mapstructure:"monitoring_enabled"`
-	StringPoolSize   int64         `mapstructure:"string_pool_size"`
-	BytePoolSize     int64         `mapstructure:"byte_pool_size"`
-	MapPoolSize      int64         `mapstructure:"map_pool_size"`
-	GCInterval       time.Duration `mapstructure:"gc_interval"`
-	MemoryThreshold  int64         `mapstructure:"memory_threshold"`
+	Enabled           bool          `mapstructure:"enabled"`
+	PoolEnabled       bool          `mapstructure:"pool_enabled"`
+	MonitoringEnabled bool          `mapstructure:"monitoring_enabled"`
+	StringPoolSize    int64         `mapstructure:"string_pool_size"`
+	BytePoolSize      int64         `mapstructure:"byte_pool_size"`
+	MapPoolSize       int64         `mapstructure:"map_pool_size"`
+	GCInterval        time.Duration `mapstructure:"gc_interval"`
+	MemoryThreshold   int64         `mapstructure:"memory_threshold"`
 }
 
 // PerformanceConfig represents performance optimization configuration
@@ -75,7 +75,7 @@ func DefaultConfig() *Config {
 	if cwd, err := os.Getwd(); err == nil {
 		projectName = filepath.Base(cwd)
 	}
-	
+
 	return &Config{
 		Project:            projectName,
 		DefaultEnvironment: "dev",
@@ -134,7 +134,7 @@ func Load(configFile string) (*Config, error) {
 
 		v.SetConfigName(".envyrc")
 		v.SetConfigType("yaml")
-		
+
 		// Add current directory and all parent directories to search path
 		dir := cwd
 		for {
@@ -151,7 +151,7 @@ func Load(configFile string) (*Config, error) {
 	v.SetEnvPrefix("ENVY")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
-	
+
 	// Bind environment variables
 	v.BindEnv("project")
 	v.BindEnv("default_environment")
@@ -182,7 +182,7 @@ func Load(configFile string) (*Config, error) {
 		for key, value := range envMap {
 			if envConfig, ok := value.(map[string]interface{}); ok {
 				env := Environment{}
-				
+
 				// Check if this is a properly formed environment config
 				if files, hasFiles := envConfig["files"]; hasFiles {
 					// This is a complete environment configuration
@@ -194,15 +194,15 @@ func Load(configFile string) (*Config, error) {
 							}
 						}
 					}
-					
+
 					if path, ok := envConfig["path"].(string); ok {
 						env.Path = path
 					}
-					
+
 					if useSecretsManager, ok := envConfig["use_secrets_manager"].(bool); ok {
 						env.UseSecretsManager = useSecretsManager
 					}
-					
+
 					cfg.Environments[key] = env
 				} else {
 					// This might be a nested structure due to dots in the name
@@ -213,7 +213,7 @@ func Load(configFile string) (*Config, error) {
 								// This is an environment with a dotted name
 								fullKey := key + "." + nestedKey
 								env := Environment{}
-								
+
 								if files, ok := nestedEnvConfig["files"].([]interface{}); ok {
 									env.Files = make([]string, 0, len(files))
 									for _, f := range files {
@@ -222,15 +222,15 @@ func Load(configFile string) (*Config, error) {
 										}
 									}
 								}
-								
+
 								if path, ok := nestedEnvConfig["path"].(string); ok {
 									env.Path = path
 								}
-								
+
 								if useSecretsManager, ok := nestedEnvConfig["use_secrets_manager"].(bool); ok {
 									env.UseSecretsManager = useSecretsManager
 								}
-								
+
 								cfg.Environments[fullKey] = env
 							}
 						}
@@ -251,7 +251,7 @@ func (c *Config) Save(filename string) error {
 
 	v := viper.New()
 	v.SetConfigType("yaml")
-	
+
 	v.Set("project", c.Project)
 	v.Set("default_environment", c.DefaultEnvironment)
 	v.Set("aws", c.AWS)
@@ -259,7 +259,7 @@ func (c *Config) Save(filename string) error {
 	v.Set("memory", c.Memory)
 	v.Set("performance", c.Performance)
 	v.Set("environments", c.Environments)
-	
+
 	// WriteConfigAs requires the file extension to determine the type
 	// If the filename doesn't have .yaml or .yml extension, we need to handle it
 	if !strings.HasSuffix(filename, ".yaml") && !strings.HasSuffix(filename, ".yml") {
@@ -270,7 +270,7 @@ func (c *Config) Save(filename string) error {
 		}
 		return os.Rename(tempFile, filename)
 	}
-	
+
 	return v.WriteConfigAs(filename)
 }
 

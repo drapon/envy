@@ -29,7 +29,7 @@ func TestCacheEnvFileIntegration(t *testing.T) {
 	t.Run("CachedOperationWithMetadata processes env.File correctly", func(t *testing.T) {
 		// Cache key
 		cacheKey := "test-env-file-operation"
-		
+
 		// First call (cache miss)
 		result1, err := manager.GetOrSet(
 			cacheKey,
@@ -43,17 +43,17 @@ func TestCacheEnvFileIntegration(t *testing.T) {
 				return envFile, nil
 			},
 		)
-		
+
 		require.NoError(t, err)
 		envFile1, ok := result1.(*env.File)
 		assert.True(t, ok, "result should be *env.File")
 		assert.NotNil(t, envFile1)
-		
+
 		// Verify values
 		val, exists := envFile1.Get("DATABASE_URL")
 		assert.True(t, exists)
 		assert.Equal(t, "postgres://localhost:5432/test", val)
-		
+
 		// Second call (cache hit)
 		result2, err := manager.GetOrSet(
 			cacheKey,
@@ -64,21 +64,21 @@ func TestCacheEnvFileIntegration(t *testing.T) {
 				return nil, nil
 			},
 		)
-		
+
 		require.NoError(t, err)
 		envFile2, ok := result2.(*env.File)
 		assert.True(t, ok, "cached result should also be *env.File")
 		assert.NotNil(t, envFile2)
-		
+
 		// Verify that values restored from cache are correct
 		val, exists = envFile2.Get("DATABASE_URL")
 		assert.True(t, exists)
 		assert.Equal(t, "postgres://localhost:5432/test", val)
-		
+
 		val, exists = envFile2.Get("REDIS_URL")
 		assert.True(t, exists)
 		assert.Equal(t, "redis://localhost:6379", val)
-		
+
 		val, exists = envFile2.Get("API_KEY")
 		assert.True(t, exists)
 		assert.Equal(t, "test-api-key", val)

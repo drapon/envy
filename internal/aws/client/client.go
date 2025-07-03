@@ -12,11 +12,11 @@ import (
 
 // Client represents an AWS client wrapper
 type Client struct {
-	config          aws.Config
-	ssmClient       *ssm.Client
-	secretsClient   *secretsmanager.Client
-	region          string
-	profile         string
+	config        aws.Config
+	ssmClient     *ssm.Client
+	secretsClient *secretsmanager.Client
+	region        string
+	profile       string
 }
 
 // Options for creating a new AWS client

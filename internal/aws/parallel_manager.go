@@ -156,7 +156,7 @@ func (m *ParallelManager) pushToParameterStoreParallel(
 			"環境変数をParameter Storeにアップロード中",
 			func(ctx context.Context, item interface{}) error {
 				op := item.(*paramOp)
-				
+
 				// Determine parameter type
 				paramType := "String"
 				if isSensitiveKey(op.Key) {
@@ -173,7 +173,7 @@ func (m *ParallelManager) pushToParameterStoreParallel(
 			operations,
 			func(ctx context.Context, item interface{}) error {
 				op := item.(*paramOp)
-				
+
 				// Determine parameter type
 				paramType := "String"
 				if isSensitiveKey(op.Key) {
@@ -193,13 +193,13 @@ func (m *ParallelManager) pushToParameterStoreParallel(
 	// Check for individual errors
 	var errorCount int
 	errorDetails := make(map[string]error)
-	
+
 	for _, result := range results {
 		if result.Error != nil {
 			errorCount++
 			op := result.Task.(*parallel.TaskFunc).Name()
 			errorDetails[op] = result.Error
-			
+
 			// Check if it's an already exists error
 			if errors.IsAlreadyExistsError(result.Error) && !overwrite {
 				return fmt.Errorf("パラメータが既に存在します。--forceオプションで上書きできます")
@@ -212,7 +212,7 @@ func (m *ParallelManager) pushToParameterStoreParallel(
 			zap.Int("failed", errorCount),
 			zap.Int("total", len(operations)),
 		)
-		
+
 		// Return first error for now
 		for _, err := range errorDetails {
 			return err
@@ -308,7 +308,7 @@ func (m *ParallelManager) pullFromParameterStoreParallel(
 	// Process function
 	processFn := func(ctx context.Context, item interface{}) error {
 		param := item.(*parameter_store.Parameter)
-		
+
 		// Get parameter value with decryption
 		fullParam, err := m.paramStore.GetParameter(ctx, param.Name, true)
 		if err != nil {
@@ -407,7 +407,7 @@ func (m *ParallelManager) ListEnvironmentsParallel(
 		"環境情報を取得中",
 		func(ctx context.Context, item interface{}) error {
 			envName := item.(string)
-			
+
 			// Get variables for this environment
 			vars, err := m.ListEnvironmentVariables(ctx, envName)
 			if err != nil {
@@ -491,7 +491,7 @@ func (m *ParallelManager) ValidateEnvironmentsParallel(
 		"環境変数を検証中",
 		func(ctx context.Context, item interface{}) error {
 			op := item.(*validationOp)
-			
+
 			// Run validation
 			if err := validator(op.EnvName, op.Vars); err != nil {
 				mu.Lock()
@@ -528,13 +528,13 @@ func isSensitiveKey(key string) bool {
 		"password", "secret", "key", "token",
 		"credential", "auth", "private", "cert",
 	}
-	
+
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(lowerKey, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -545,6 +545,6 @@ func (m *ParallelManager) PutParameter(ctx context.Context, name, value, paramTy
 
 // PutSecret puts a secret to Secrets Manager
 func (m *ParallelManager) PutSecret(ctx context.Context, name string, data map[string]string, overwrite bool) error {
-	return m.secretsManager.CreateOrUpdateSecret(ctx, name, 
+	return m.secretsManager.CreateOrUpdateSecret(ctx, name,
 		fmt.Sprintf("Environment variables for %s", name), data)
 }

@@ -19,10 +19,10 @@ import (
 // MockAWSManager provides a comprehensive mock for AWS operations
 type MockAWSManager struct {
 	mock.Mock
-	ssmClient    *MockSSMClient
+	ssmClient     *MockSSMClient
 	secretsClient *MockSecretsManagerClient
 	errorInjector *MockErrorInjector
-	mu           sync.RWMutex
+	mu            sync.RWMutex
 }
 
 // NewMockAWSManager creates a new mock AWS manager
@@ -53,15 +53,15 @@ func (m *MockAWSManager) GetErrorInjector() *MockErrorInjector {
 func (m *MockAWSManager) SetupParameterStore(parameters map[string]ParameterData) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.ssmClient.ClearParameters()
-	
+
 	for name, data := range parameters {
 		paramType := ssmtypes.ParameterTypeString
 		if data.Secure {
 			paramType = ssmtypes.ParameterTypeSecureString
 		}
-		
+
 		m.ssmClient.SetParameter(name, data.Value, paramType)
 	}
 }
@@ -70,9 +70,9 @@ func (m *MockAWSManager) SetupParameterStore(parameters map[string]ParameterData
 func (m *MockAWSManager) SetupSecretsManager(secrets map[string]SecretData) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.secretsClient.ClearSecrets()
-	
+
 	for name, data := range secrets {
 		var secretValue string
 		if data.KeyValue != nil {
@@ -82,7 +82,7 @@ func (m *MockAWSManager) SetupSecretsManager(secrets map[string]SecretData) {
 		} else {
 			secretValue = data.Value
 		}
-		
+
 		m.secretsClient.SetSecret(name, secretValue)
 	}
 }
@@ -165,11 +165,11 @@ func (m *MockParameterStoreClient) incrementCallCount(operation string) {
 func (m *MockParameterStoreClient) GetParameter(ctx context.Context, params *ssm.GetParameterInput, optFns ...func(*ssm.Options)) (*ssm.GetParameterOutput, error) {
 	m.incrementCallCount("GetParameter")
 	m.simulateLatency()
-	
+
 	if m.shouldFail() {
 		return nil, fmt.Errorf("simulated failure")
 	}
-	
+
 	return m.MockSSMClient.GetParameter(ctx, params, optFns...)
 }
 
@@ -203,7 +203,7 @@ func (m *MockSecretsManagerAdvanced) SetLatencySimulation(latency time.Duration)
 func (m *MockSecretsManagerAdvanced) SetSecretVersion(secretName, version, value string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if m.secretVersions[secretName] == nil {
 		m.secretVersions[secretName] = make(map[string]string)
 	}
@@ -214,15 +214,15 @@ func (m *MockSecretsManagerAdvanced) SetSecretVersion(secretName, version, value
 func (m *MockSecretsManagerAdvanced) GetSecretValue(ctx context.Context, params *secretsmanager.GetSecretValueInput, optFns ...func(*secretsmanager.Options)) (*secretsmanager.GetSecretValueOutput, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.callCount["GetSecretValue"]++
-	
+
 	if m.latencySimulation > 0 {
 		time.Sleep(m.latencySimulation)
 	}
-	
+
 	secretName := *params.SecretId
-	
+
 	// Check if specific version is requested
 	if params.VersionId != nil {
 		if versions, exists := m.secretVersions[secretName]; exists {
@@ -238,19 +238,19 @@ func (m *MockSecretsManagerAdvanced) GetSecretValue(ctx context.Context, params 
 			Message: aws.String("Version not found"),
 		}
 	}
-	
+
 	// Fall back to base implementation for current version
 	return m.MockSecretsManagerClient.GetSecretValue(ctx, params, optFns...)
 }
 
 // TestScenario represents a test scenario with specific setup
 type TestScenario struct {
-	Name                string
-	ParameterStoreData  map[string]ParameterData
-	SecretsManagerData  map[string]SecretData
-	ErrorConditions     map[string]error
-	LatencySimulation   time.Duration
-	ExpectedResults     map[string]interface{}
+	Name               string
+	ParameterStoreData map[string]ParameterData
+	SecretsManagerData map[string]SecretData
+	ErrorConditions    map[string]error
+	LatencySimulation  time.Duration
+	ExpectedResults    map[string]interface{}
 }
 
 // ScenarioManager manages test scenarios
@@ -279,29 +279,29 @@ func (sm *ScenarioManager) LoadScenario(name string, awsManager *MockAWSManager)
 	sm.mu.RLock()
 	scenario, exists := sm.scenarios[name]
 	sm.mu.RUnlock()
-	
+
 	if !exists {
 		return fmt.Errorf("scenario %s not found", name)
 	}
-	
+
 	sm.mu.Lock()
 	sm.current = scenario
 	sm.mu.Unlock()
-	
+
 	// Setup AWS services with scenario data
 	if scenario.ParameterStoreData != nil {
 		awsManager.SetupParameterStore(scenario.ParameterStoreData)
 	}
-	
+
 	if scenario.SecretsManagerData != nil {
 		awsManager.SetupSecretsManager(scenario.SecretsManagerData)
 	}
-	
+
 	// Setup error conditions
 	for operation, err := range scenario.ErrorConditions {
 		awsManager.GetErrorInjector().InjectError(operation, err)
 	}
-	
+
 	return nil
 }
 
@@ -315,14 +315,14 @@ func (sm *ScenarioManager) GetCurrentScenario() *TestScenario {
 // CreateCommonScenarios creates commonly used test scenarios
 func CreateCommonScenarios() *ScenarioManager {
 	sm := NewScenarioManager()
-	
+
 	// Basic success scenario
 	sm.AddScenario(&TestScenario{
 		Name: "basic_success",
 		ParameterStoreData: map[string]ParameterData{
-			"/myapp/dev/APP_NAME":    {Value: "test-app", Secure: false},
-			"/myapp/dev/DEBUG":       {Value: "true", Secure: false},
-			"/myapp/dev/API_KEY":     {Value: "secret-key", Secure: true},
+			"/myapp/dev/APP_NAME":     {Value: "test-app", Secure: false},
+			"/myapp/dev/DEBUG":        {Value: "true", Secure: false},
+			"/myapp/dev/API_KEY":      {Value: "secret-key", Secure: true},
 			"/myapp/dev/DATABASE_URL": {Value: "postgres://localhost/db", Secure: false},
 		},
 		SecretsManagerData: map[string]SecretData{
@@ -334,14 +334,14 @@ func CreateCommonScenarios() *ScenarioManager {
 			},
 		},
 	})
-	
+
 	// Empty environment scenario
 	sm.AddScenario(&TestScenario{
 		Name:               "empty_environment",
 		ParameterStoreData: map[string]ParameterData{},
 		SecretsManagerData: map[string]SecretData{},
 	})
-	
+
 	// Large dataset scenario
 	largeParameterData := make(map[string]ParameterData)
 	for i := 0; i < 1000; i++ {
@@ -349,12 +349,12 @@ func CreateCommonScenarios() *ScenarioManager {
 		value := fmt.Sprintf("value_%d_%s", i, strings.Repeat("x", 100))
 		largeParameterData[key] = ParameterData{Value: value, Secure: false}
 	}
-	
+
 	sm.AddScenario(&TestScenario{
 		Name:               "large_dataset",
 		ParameterStoreData: largeParameterData,
 	})
-	
+
 	// Error conditions scenario
 	sm.AddScenario(&TestScenario{
 		Name: "error_conditions",
@@ -362,12 +362,12 @@ func CreateCommonScenarios() *ScenarioManager {
 			"/myapp/error/GOOD_VAR": {Value: "good-value", Secure: false},
 		},
 		ErrorConditions: map[string]error{
-			"PutParameter":  fmt.Errorf("access denied"),
-			"GetParameter":  fmt.Errorf("parameter not found"),
+			"PutParameter": fmt.Errorf("access denied"),
+			"GetParameter": fmt.Errorf("parameter not found"),
 			"CreateSecret": fmt.Errorf("secret already exists"),
 		},
 	})
-	
+
 	// Network latency scenario
 	sm.AddScenario(&TestScenario{
 		Name: "high_latency",
@@ -377,13 +377,13 @@ func CreateCommonScenarios() *ScenarioManager {
 		},
 		LatencySimulation: 100 * time.Millisecond,
 	})
-	
+
 	// Mixed service types scenario
 	sm.AddScenario(&TestScenario{
 		Name: "mixed_services",
 		ParameterStoreData: map[string]ParameterData{
-			"/myapp/mixed/PUBLIC_VAR":  {Value: "public-value", Secure: false},
-			"/myapp/mixed/CONFIG_VAR":  {Value: "config-value", Secure: false},
+			"/myapp/mixed/PUBLIC_VAR": {Value: "public-value", Secure: false},
+			"/myapp/mixed/CONFIG_VAR": {Value: "config-value", Secure: false},
 		},
 		SecretsManagerData: map[string]SecretData{
 			"myapp-mixed-secrets": {
@@ -395,7 +395,7 @@ func CreateCommonScenarios() *ScenarioManager {
 			},
 		},
 	})
-	
+
 	return sm
 }
 
@@ -408,21 +408,21 @@ func (v *TestDataValidator) ValidateParameterStoreData(data map[string]Parameter
 		if key == "" {
 			return fmt.Errorf("parameter key cannot be empty")
 		}
-		
+
 		if !strings.HasPrefix(key, "/") {
 			return fmt.Errorf("parameter key must start with '/': %s", key)
 		}
-		
+
 		if param.Value == "" && !param.Secure {
 			// Non-secure parameters can be empty, but warn about it
 			// This is just a validation example
 		}
-		
+
 		if param.Secure && len(param.Value) < 8 {
 			return fmt.Errorf("secure parameter should have minimum length: %s", key)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -432,15 +432,15 @@ func (v *TestDataValidator) ValidateSecretsManagerData(data map[string]SecretDat
 		if name == "" {
 			return fmt.Errorf("secret name cannot be empty")
 		}
-		
+
 		if secret.Value == "" && secret.KeyValue == nil {
 			return fmt.Errorf("secret must have either Value or KeyValue: %s", name)
 		}
-		
+
 		if secret.Value != "" && secret.KeyValue != nil {
 			return fmt.Errorf("secret cannot have both Value and KeyValue: %s", name)
 		}
-		
+
 		if secret.KeyValue != nil {
 			for key, value := range secret.KeyValue {
 				if key == "" {
@@ -452,7 +452,7 @@ func (v *TestDataValidator) ValidateSecretsManagerData(data map[string]SecretDat
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -481,18 +481,18 @@ func NewPerformanceMetrics() *PerformanceMetrics {
 func (pm *PerformanceMetrics) RecordOperation(operation string, duration time.Duration, success bool) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.OperationCounts[operation]++
 	pm.TotalDuration[operation] += duration
-	
+
 	if pm.MaxDuration[operation] < duration {
 		pm.MaxDuration[operation] = duration
 	}
-	
+
 	if pm.MinDuration[operation] == 0 || pm.MinDuration[operation] > duration {
 		pm.MinDuration[operation] = duration
 	}
-	
+
 	if !success {
 		pm.ErrorCounts[operation]++
 	}
@@ -502,12 +502,12 @@ func (pm *PerformanceMetrics) RecordOperation(operation string, duration time.Du
 func (pm *PerformanceMetrics) GetAverageDuration(operation string) time.Duration {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
-	
+
 	count := pm.OperationCounts[operation]
 	if count == 0 {
 		return 0
 	}
-	
+
 	return pm.TotalDuration[operation] / time.Duration(count)
 }
 
@@ -515,12 +515,12 @@ func (pm *PerformanceMetrics) GetAverageDuration(operation string) time.Duration
 func (pm *PerformanceMetrics) GetErrorRate(operation string) float64 {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
-	
+
 	count := pm.OperationCounts[operation]
 	if count == 0 {
 		return 0
 	}
-	
+
 	return float64(pm.ErrorCounts[operation]) / float64(count)
 }
 
@@ -528,7 +528,7 @@ func (pm *PerformanceMetrics) GetErrorRate(operation string) float64 {
 func (pm *PerformanceMetrics) Reset() {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.OperationCounts = make(map[string]int)
 	pm.TotalDuration = make(map[string]time.Duration)
 	pm.MaxDuration = make(map[string]time.Duration)

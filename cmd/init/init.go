@@ -41,7 +41,7 @@ that you can customize for your project.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(initCmd)
-	
+
 	// Add flags specific to init command
 	initCmd.Flags().StringVarP(&projectName, "project", "p", "", "Project name (defaults to current directory name)")
 	initCmd.Flags().StringVarP(&envName, "env", "e", "dev", "Initial environment name")
@@ -156,13 +156,13 @@ DEBUG=true
 // detectEnvFiles scans the current directory for .env files
 func detectEnvFiles() []string {
 	var envFiles []string
-	
+
 	// Common .env file patterns
 	patterns := []string{
 		".env",
 		".env.*",
 	}
-	
+
 	for _, pattern := range patterns {
 		matches, err := filepath.Glob(pattern)
 		if err == nil {
@@ -175,14 +175,14 @@ func detectEnvFiles() []string {
 			}
 		}
 	}
-	
+
 	return envFiles
 }
 
 // extractEnvName extracts environment name from .env file name
 func extractEnvName(filename string) string {
 	base := filepath.Base(filename)
-	
+
 	// Handle different naming patterns
 	switch base {
 	case ".env":

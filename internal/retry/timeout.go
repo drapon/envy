@@ -99,9 +99,9 @@ func WithFileTimeout(ctx context.Context, fn func(context.Context) error) error 
 
 // TimeoutOperation represents an operation with timeout and retry
 type TimeoutOperation struct {
-	Timeout  time.Duration
-	Retryer  *Retryer
-	OnRetry  NotifyFunc
+	Timeout time.Duration
+	Retryer *Retryer
+	OnRetry NotifyFunc
 }
 
 // Execute runs the operation with timeout and retry logic
@@ -146,9 +146,9 @@ func RunWithDeadline(deadline time.Time, fn func(context.Context) error) error {
 
 // ContextWithTimeouts creates a context with multiple timeout options
 type ContextWithTimeouts struct {
-	ctx     context.Context
-	cancel  context.CancelFunc
-	timers  []*time.Timer
+	ctx    context.Context
+	cancel context.CancelFunc
+	timers []*time.Timer
 }
 
 // NewContextWithTimeouts creates a new context with timeout management

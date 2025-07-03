@@ -132,34 +132,34 @@ KEY="unclosed 'mixed quotes"`
 func (f *TestFixtures) EnvContentLarge(size int) string {
 	var builder strings.Builder
 	builder.WriteString("# Large environment file for testing\n")
-	
+
 	for i := 0; i < size; i++ {
 		builder.WriteString(fmt.Sprintf("VAR_%d=value_%d_%s\n", i, i, strings.Repeat("x", 50)))
 	}
-	
+
 	return builder.String()
 }
 
 // AWSParameterStoreData returns sample AWS Parameter Store data
 func (f *TestFixtures) AWSParameterStoreData() map[string]string {
 	return map[string]string{
-		"/myapp/prod/APP_NAME":       "production-app",
-		"/myapp/prod/DEBUG":          "false",
-		"/myapp/prod/DATABASE_URL":   "postgres://prod.example.com/db",
-		"/myapp/prod/API_KEY":        "prod-api-key-xyz",
-		"/myapp/prod/PORT":           "80",
-		"/myapp/prod/REDIS_URL":      "redis://prod-redis.example.com:6379",
-		"/myapp/prod/JWT_SECRET":     "prod-jwt-secret-abc",
-		"/myapp/staging/APP_NAME":    "staging-app",
-		"/myapp/staging/DEBUG":       "true",
+		"/myapp/prod/APP_NAME":        "production-app",
+		"/myapp/prod/DEBUG":           "false",
+		"/myapp/prod/DATABASE_URL":    "postgres://prod.example.com/db",
+		"/myapp/prod/API_KEY":         "prod-api-key-xyz",
+		"/myapp/prod/PORT":            "80",
+		"/myapp/prod/REDIS_URL":       "redis://prod-redis.example.com:6379",
+		"/myapp/prod/JWT_SECRET":      "prod-jwt-secret-abc",
+		"/myapp/staging/APP_NAME":     "staging-app",
+		"/myapp/staging/DEBUG":        "true",
 		"/myapp/staging/DATABASE_URL": "postgres://staging.example.com/db",
-		"/myapp/staging/API_KEY":     "staging-api-key-123",
-		"/myapp/staging/PORT":        "8080",
-		"/myapp/dev/APP_NAME":        "dev-app",
-		"/myapp/dev/DEBUG":           "true",
-		"/myapp/dev/DATABASE_URL":    "postgres://localhost/dev_db",
-		"/myapp/dev/API_KEY":         "dev-api-key-local",
-		"/myapp/dev/PORT":            "3000",
+		"/myapp/staging/API_KEY":      "staging-api-key-123",
+		"/myapp/staging/PORT":         "8080",
+		"/myapp/dev/APP_NAME":         "dev-app",
+		"/myapp/dev/DEBUG":            "true",
+		"/myapp/dev/DATABASE_URL":     "postgres://localhost/dev_db",
+		"/myapp/dev/API_KEY":          "dev-api-key-local",
+		"/myapp/dev/PORT":             "3000",
 	}
 }
 
@@ -281,9 +281,9 @@ func (f *TestFixtures) TableTestCases() interface{} {
 			ExpectError bool
 		}
 		ConfigValidation []struct {
-			Config      string
-			Valid       bool
-			ErrorField  string
+			Config     string
+			Valid      bool
+			ErrorField string
 		}
 	}{
 		ValidEnvLines: []struct {
@@ -333,9 +333,9 @@ func (f *TestFixtures) TableTestCases() interface{} {
 			},
 		},
 		ConfigValidation: []struct {
-			Config      string
-			Valid       bool
-			ErrorField  string
+			Config     string
+			Valid      bool
+			ErrorField string
 		}{
 			{
 				Config: `project: test
@@ -448,7 +448,7 @@ func (f *TestFixtures) JSONSecretValue() string {
 			"expires_in": "24h",
 		},
 	}
-	
+
 	jsonBytes, _ := json.Marshal(data)
 	return string(jsonBytes)
 }
@@ -479,7 +479,7 @@ func (f *TestFixtures) UnicodeValue() string {
 // GenerateTestData generates test data with specified parameters
 func (f *TestFixtures) GenerateTestData(opts TestDataOptions) map[string]string {
 	data := make(map[string]string)
-	
+
 	// Add regular variables
 	for i := 0; i < opts.RegularVars; i++ {
 		key := fmt.Sprintf("VAR_%d", i)
@@ -489,7 +489,7 @@ func (f *TestFixtures) GenerateTestData(opts TestDataOptions) map[string]string 
 		}
 		data[key] = value
 	}
-	
+
 	// Add sensitive variables
 	sensitiveNames := f.SensitiveVariableNames()
 	for i := 0; i < opts.SensitiveVars && i < len(sensitiveNames); i++ {
@@ -500,16 +500,16 @@ func (f *TestFixtures) GenerateTestData(opts TestDataOptions) map[string]string 
 		}
 		data[key] = value
 	}
-	
+
 	return data
 }
 
 // TestDataOptions defines options for generating test data
 type TestDataOptions struct {
-	RegularVars    int
-	SensitiveVars  int
-	LongValues     bool
-	ValueLength    int
+	RegularVars   int
+	SensitiveVars int
+	LongValues    bool
+	ValueLength   int
 }
 
 // DefaultTestDataOptions returns default test data options

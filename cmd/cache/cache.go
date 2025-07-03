@@ -97,7 +97,7 @@ func showCacheStats(logger *zap.Logger) error {
 
 	stats := cacheManager.Stats()
 	formattedStats := cache.FormatCacheStats(stats)
-	
+
 	fmt.Print(formattedStats)
 
 	logger.Debug("Displayed cache statistics",
@@ -117,7 +117,7 @@ func formatSize(bytes int64) string {
 		GB = MB * 1024
 		TB = GB * 1024
 	)
-	
+
 	switch {
 	case bytes >= TB:
 		return fmt.Sprintf("%.2f TB", float64(bytes)/TB)

@@ -70,7 +70,7 @@ func LoadCacheConfigFromViper(v *viper.Viper) (*CacheConfig, error) {
 
 	// 基本設定
 	config.Enabled = v.GetBool("cache.enabled")
-	
+
 	// TTLの解析
 	ttlStr := v.GetString("cache.ttl")
 	if ttlStr != "" {
@@ -128,11 +128,11 @@ func LoadCacheConfigFromViper(v *viper.Viper) (*CacheConfig, error) {
 // parseSizeString はサイズ文字列（例: "100MB", "1GB"）をバイト数に変換
 func parseSizeString(sizeStr string) (int64, error) {
 	sizeStr = strings.ToUpper(strings.TrimSpace(sizeStr))
-	
+
 	// 数値部分と単位部分を分離
 	var numStr string
 	var unit string
-	
+
 	for i, r := range sizeStr {
 		if (r >= '0' && r <= '9') || r == '.' {
 			numStr += string(r)
@@ -141,16 +141,16 @@ func parseSizeString(sizeStr string) (int64, error) {
 			break
 		}
 	}
-	
+
 	if numStr == "" {
 		return 0, fmt.Errorf("無効なサイズ形式: %s", sizeStr)
 	}
-	
+
 	size, err := strconv.ParseFloat(numStr, 64)
 	if err != nil {
 		return 0, fmt.Errorf("サイズの解析エラー: %w", err)
 	}
-	
+
 	// 単位の変換
 	switch unit {
 	case "", "B":
@@ -262,18 +262,18 @@ func GetCacheStats() *CacheStats {
 // FormatCacheStats はキャッシュ統計を人間が読める形式でフォーマット
 func FormatCacheStats(stats *CacheStats) string {
 	var sb strings.Builder
-	
+
 	sb.WriteString("キャッシュ統計:\n")
 	sb.WriteString(fmt.Sprintf("  ヒット数: %d\n", stats.Hits))
 	sb.WriteString(fmt.Sprintf("  ミス数: %d\n", stats.Misses))
 	sb.WriteString(fmt.Sprintf("  ヒット率: %.2f%%\n", stats.HitRate()*100))
 	sb.WriteString(fmt.Sprintf("  エントリ数: %d\n", stats.Entries))
 	sb.WriteString(fmt.Sprintf("  サイズ: %s\n", formatSize(stats.Size)))
-	
+
 	if !stats.LastCleanup.IsZero() {
 		sb.WriteString(fmt.Sprintf("  最終クリーンアップ: %s\n", stats.LastCleanup.Format("2006-01-02 15:04:05")))
 	}
-	
+
 	return sb.String()
 }
 
@@ -285,7 +285,7 @@ func formatSize(bytes int64) string {
 		GB = MB * 1024
 		TB = GB * 1024
 	)
-	
+
 	switch {
 	case bytes >= TB:
 		return fmt.Sprintf("%.2f TB", float64(bytes)/TB)
@@ -306,12 +306,12 @@ func FileBasedCacheKey(prefix, filePath string) (string, time.Time, error) {
 	if err != nil {
 		return "", time.Time{}, err
 	}
-	
+
 	key := NewCacheKeyBuilder(prefix).
 		Add(filePath).
 		AddF("mtime:%d", stat.ModTime().Unix()).
 		AddF("size:%d", stat.Size()).
 		Build()
-		
+
 	return key, stat.ModTime(), nil
 }

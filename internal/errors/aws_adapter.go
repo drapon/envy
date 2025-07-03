@@ -59,7 +59,7 @@ func EnhanceAWSError(err error, operation string, resource string) error {
 
 	// First adapt the error
 	adaptedErr := AdaptAWSError(err)
-	
+
 	// If it's already an EnvyError, enhance it
 	if envyErr, ok := adaptedErr.(*EnvyError); ok {
 		return envyErr.

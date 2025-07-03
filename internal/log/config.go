@@ -14,37 +14,37 @@ import (
 type Config struct {
 	// Level ログレベル (debug, info, warn, error)
 	Level LogLevel `mapstructure:"level"`
-	
+
 	// Format ログフォーマット (json, console)
 	Format string `mapstructure:"format"`
-	
+
 	// Output 出力先 (stdout, file, syslog)
 	Output string `mapstructure:"output"`
-	
+
 	// FilePath ファイル出力時のパス
 	FilePath string `mapstructure:"file_path"`
-	
+
 	// Development 開発モード（より詳細なログ）
 	Development bool `mapstructure:"development"`
-	
+
 	// EnableCaller 呼び出し元の情報を含める
 	EnableCaller bool `mapstructure:"enable_caller"`
-	
+
 	// EnableStacktrace エラー時のスタックトレースを含める
 	EnableStacktrace bool `mapstructure:"enable_stacktrace"`
-	
+
 	// MaxSize ログファイルの最大サイズ（MB）
 	MaxSize int `mapstructure:"max_size"`
-	
+
 	// MaxBackups 保持する古いログファイルの最大数
 	MaxBackups int `mapstructure:"max_backups"`
-	
+
 	// MaxAge 古いログファイルを保持する最大日数
 	MaxAge int `mapstructure:"max_age"`
-	
+
 	// Compress 古いログファイルを圧縮するか
 	Compress bool `mapstructure:"compress"`
-	
+
 	// SensitiveKeys センシティブな情報として扱うキーのリスト
 	SensitiveKeys []string `mapstructure:"sensitive_keys"`
 }
@@ -98,36 +98,36 @@ func ProductionConfig() *Config {
 // LoadFromViper はViperから設定を読み込みます
 func LoadFromViper(v *viper.Viper) (*Config, error) {
 	config := DefaultConfig()
-	
+
 	// Viperから設定を読み込み
 	if v.IsSet("log") {
 		if err := v.UnmarshalKey("log", config); err != nil {
 			return nil, fmt.Errorf("ログ設定の読み込みエラー: %w", err)
 		}
 	}
-	
+
 	// 環境変数の優先
 	if level := os.Getenv("ENVY_LOG_LEVEL"); level != "" {
 		config.Level = LogLevel(strings.ToLower(level))
 	}
-	
+
 	if format := os.Getenv("ENVY_LOG_FORMAT"); format != "" {
 		config.Format = strings.ToLower(format)
 	}
-	
+
 	if output := os.Getenv("ENVY_LOG_OUTPUT"); output != "" {
 		config.Output = strings.ToLower(output)
 	}
-	
+
 	// CLIフラグの処理
 	if v.GetBool("verbose") || v.GetBool("debug") {
 		config.Level = DebugLevel
 	}
-	
+
 	if v.GetBool("quiet") {
 		config.Level = ErrorLevel
 	}
-	
+
 	// 開発モードの自動検出
 	if os.Getenv("ENVY_ENV") == "development" || os.Getenv("ENVY_DEBUG") == "true" {
 		config.Development = true
@@ -135,12 +135,12 @@ func LoadFromViper(v *viper.Viper) (*Config, error) {
 			config.Level = DebugLevel
 		}
 	}
-	
+
 	// 検証
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	
+
 	return config, nil
 }
 
@@ -156,7 +156,7 @@ func (c *Config) Validate() error {
 	if !validLevels[c.Level] {
 		return fmt.Errorf("無効なログレベル: %s", c.Level)
 	}
-	
+
 	// フォーマットの検証
 	validFormats := map[string]bool{
 		"json":    true,
@@ -165,7 +165,7 @@ func (c *Config) Validate() error {
 	if !validFormats[c.Format] {
 		return fmt.Errorf("無効なログフォーマット: %s", c.Format)
 	}
-	
+
 	// 出力先の検証
 	validOutputs := map[string]bool{
 		"stdout": true,
@@ -175,13 +175,13 @@ func (c *Config) Validate() error {
 	if !validOutputs[c.Output] {
 		return fmt.Errorf("無効な出力先: %s", c.Output)
 	}
-	
+
 	// ファイル出力の場合のパス検証
 	if c.Output == "file" && c.FilePath == "" {
 		// デフォルトパスを設定
 		c.FilePath = filepath.Join(".", "envy.log")
 	}
-	
+
 	return nil
 }
 
@@ -190,12 +190,12 @@ func (c *Config) GetLogFilePath() string {
 	if c.FilePath == "" {
 		return "envy.log"
 	}
-	
+
 	// 日付ベースのファイル名をサポート
 	if strings.Contains(c.FilePath, "%") {
 		return time.Now().Format(c.FilePath)
 	}
-	
+
 	return c.FilePath
 }
 
@@ -259,7 +259,7 @@ func (c *Config) MergeWithFlags(verbose, quiet bool) {
 		c.Level = DebugLevel
 		c.EnableCaller = true
 	}
-	
+
 	if quiet {
 		c.Level = ErrorLevel
 	}

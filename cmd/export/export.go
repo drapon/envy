@@ -67,7 +67,7 @@ Kubernetes ConfigMaps, or other supported formats.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(exportCmd)
-	
+
 	// Add flags specific to export command
 	exportCmd.Flags().StringVarP(&environment, "env", "e", "", "Environment to export")
 	exportCmd.Flags().StringVarP(&format, "format", "f", "shell", "Export format (shell/docker/k8s-configmap/k8s-secret/github-actions/json/yaml)")
@@ -77,7 +77,7 @@ func init() {
 	exportCmd.Flags().String("from", "local", "Source (local/aws)")
 	exportCmd.Flags().String("filter", "", "Filter pattern for variables to export")
 	exportCmd.Flags().String("exclude", "", "Pattern for variables to exclude")
-	
+
 	// Bind namespace flag to viper
 	viper.BindPFlag("export.namespace", exportCmd.Flags().Lookup("namespace"))
 	namespace = viper.GetString("export.namespace")
@@ -191,7 +191,7 @@ func applyFilters(envFile *env.File, filterPattern, excludePattern string) *env.
 	}
 
 	result := env.NewFile()
-	
+
 	for _, key := range envFile.Keys() {
 		include := true
 

@@ -15,8 +15,8 @@ import (
 
 // Manager represents a Secrets Manager client wrapper
 type Manager struct {
-	client         *client.Client
-	secretsClient  *secretsmanager.Client
+	client        *client.Client
+	secretsClient *secretsmanager.Client
 }
 
 // NewManager creates a new Secrets Manager client
@@ -32,8 +32,8 @@ type Secret struct {
 	Name         string
 	ARN          string
 	Description  string
-	Value        string                 // For string secrets
-	KeyValue     map[string]string      // For JSON key-value secrets
+	Value        string            // For string secrets
+	KeyValue     map[string]string // For JSON key-value secrets
 	CreatedDate  string
 	LastModified string
 	VersionId    string
@@ -63,7 +63,7 @@ func (m *Manager) GetSecret(ctx context.Context, name string) (*Secret, error) {
 	// Handle secret value
 	if result.SecretString != nil {
 		secretString := aws.ToString(result.SecretString)
-		
+
 		// Try to parse as JSON
 		var keyValue map[string]string
 		if err := json.Unmarshal([]byte(secretString), &keyValue); err == nil {
@@ -174,7 +174,7 @@ func (m *Manager) ListSecrets(ctx context.Context, namePrefix string) ([]*Secret
 
 		for _, secretEntry := range result.SecretList {
 			name := aws.ToString(secretEntry.Name)
-			
+
 			// Filter by prefix if specified
 			if namePrefix != "" && !strings.HasPrefix(name, namePrefix) {
 				continue
@@ -246,7 +246,7 @@ func (m *Manager) ConvertToEnvVars(secrets []*Secret, stripPrefix string) map[st
 		} else if secret.Value != "" {
 			// Handle string secrets
 			key := secret.Name
-			
+
 			// Strip prefix if specified
 			if stripPrefix != "" && strings.HasPrefix(key, stripPrefix) {
 				key = strings.TrimPrefix(key, stripPrefix)
@@ -264,21 +264,21 @@ func (m *Manager) ConvertToEnvVars(secrets []*Secret, stripPrefix string) map[st
 func formatEnvKey(key string) string {
 	// Convert to uppercase
 	key = strings.ToUpper(key)
-	
+
 	// Replace invalid characters with underscores
 	key = strings.ReplaceAll(key, "-", "_")
 	key = strings.ReplaceAll(key, ".", "_")
 	key = strings.ReplaceAll(key, "/", "_")
 	key = strings.ReplaceAll(key, " ", "_")
-	
+
 	// Remove leading numbers
 	for len(key) > 0 && key[0] >= '0' && key[0] <= '9' {
 		key = key[1:]
 	}
-	
+
 	// Remove leading underscores
 	key = strings.TrimPrefix(key, "_")
-	
+
 	return key
 }
 

@@ -57,7 +57,7 @@ properly formatted, and meet any defined validation criteria.`,
 
 func init() {
 	root.GetRootCmd().AddCommand(validateCmd)
-	
+
 	// Add flags specific to validate command
 	validateCmd.Flags().StringVarP(&environment, "env", "e", "", "Environment to validate")
 	validateCmd.Flags().StringVarP(&file, "file", "f", "", "Environment file to validate")
@@ -206,7 +206,7 @@ func outputText(result *validator.ValidationResult, envName string) {
 	// Summary
 	errorCount := len(result.Errors)
 	warningCount := len(result.Warnings)
-	
+
 	if errorCount == 0 && warningCount == 0 {
 		color.PrintSuccess("✅ All validation checks passed!")
 		return
@@ -264,7 +264,7 @@ func outputText(result *validator.ValidationResult, envName string) {
 			status = "PASSED with warnings"
 		}
 	}
-	
+
 	if errorCount == 0 && warningCount == 0 {
 		color.PrintSuccess("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
 	} else if errorCount > 0 {
@@ -276,11 +276,11 @@ func outputText(result *validator.ValidationResult, envName string) {
 
 func outputJSON(result *validator.ValidationResult, envName string) error {
 	output := map[string]interface{}{
-		"environment": envName,
-		"status":      "passed",
-		"errors":      result.Errors,
-		"warnings":    result.Warnings,
-		"fixes":       result.Fixes,
+		"environment":   envName,
+		"status":        "passed",
+		"errors":        result.Errors,
+		"warnings":      result.Warnings,
+		"fixes":         result.Fixes,
 		"applied_fixes": result.AppliedFixes,
 		"summary": map[string]int{
 			"errors":   len(result.Errors),

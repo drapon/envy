@@ -67,7 +67,7 @@ func TestMemoryCache(t *testing.T) {
 	t.Run("Set and Get", func(t *testing.T) {
 		key := "test_key"
 		value := "test_value"
-		
+
 		err := cache.Set(key, value, 0)
 		require.NoError(t, err)
 
@@ -81,7 +81,7 @@ func TestMemoryCache(t *testing.T) {
 	t.Run("Delete", func(t *testing.T) {
 		key := "delete_key"
 		value := "delete_value"
-		
+
 		err := cache.Set(key, value, 0)
 		require.NoError(t, err)
 
@@ -97,7 +97,7 @@ func TestMemoryCache(t *testing.T) {
 	t.Run("TTL Expiration", func(t *testing.T) {
 		key := "ttl_key"
 		value := "ttl_value"
-		
+
 		err := cache.Set(key, value, 100*time.Millisecond)
 		require.NoError(t, err)
 
@@ -135,7 +135,7 @@ func TestMemoryCache(t *testing.T) {
 
 func TestDiskCache(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	config := &CacheConfig{
 		Type:       DiskCache,
 		TTL:        1 * time.Hour,
@@ -153,7 +153,7 @@ func TestDiskCache(t *testing.T) {
 	t.Run("Disk Persistence", func(t *testing.T) {
 		key := "disk_key"
 		value := "disk_value"
-		
+
 		err := cache.Set(key, value, 0)
 		require.NoError(t, err)
 
@@ -173,7 +173,7 @@ func TestDiskCache(t *testing.T) {
 
 func TestEncryptedCache(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	config := &CacheConfig{
 		Type:          HybridCache,
 		TTL:           1 * time.Hour,
@@ -195,7 +195,7 @@ func TestEncryptedCache(t *testing.T) {
 		metadata := map[string]interface{}{
 			"sensitive": true,
 		}
-		
+
 		err := cache.SetWithMetadata(key, value, 0, metadata)
 		require.NoError(t, err)
 
@@ -229,7 +229,7 @@ func TestCacheStats(t *testing.T) {
 		// ヒット
 		cache.Get("key1")
 		cache.Get("key2")
-		
+
 		// ミス
 		cache.Get("nonexistent")
 
@@ -258,21 +258,21 @@ func TestCacheHelper(t *testing.T) {
 
 	t.Run("IsFileModified", func(t *testing.T) {
 		tmpFile := filepath.Join(t.TempDir(), "test.txt")
-		
+
 		// ファイルを作成
 		err := os.WriteFile(tmpFile, []byte("content"), 0644)
 		require.NoError(t, err)
-		
+
 		stat, err := os.Stat(tmpFile)
 		require.NoError(t, err)
-		
+
 		// 同じ時刻では変更されていない
 		assert.False(t, IsFileModified(tmpFile, stat.ModTime()))
-		
+
 		// 過去の時刻と比較すると変更されている
 		pastTime := stat.ModTime().Add(-1 * time.Hour)
 		assert.True(t, IsFileModified(tmpFile, pastTime))
-		
+
 		// 存在しないファイルは変更されたとみなす
 		assert.True(t, IsFileModified("/nonexistent", time.Now()))
 	})
@@ -296,7 +296,7 @@ func TestCacheKeyBuilder(t *testing.T) {
 			Add("part2").
 			AddF("formatted_%d", 123).
 			Build()
-		
+
 		assert.Equal(t, key, key2)
 	})
 }

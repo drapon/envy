@@ -19,19 +19,19 @@ func InitializeLogger(v *viper.Viper) error {
 	if err != nil {
 		return fmt.Errorf("ログ設定の読み込みエラー: %w", err)
 	}
-	
+
 	// ロガーを初期化
 	if err := Init(config); err != nil {
 		return fmt.Errorf("ロガーの初期化エラー: %w", err)
 	}
-	
+
 	// 初期化完了をログ出力
 	Debug("ロガーを初期化しました",
 		Field("level", string(config.Level)),
 		Field("format", config.Format),
 		Field("output", config.Output),
 	)
-	
+
 	return nil
 }
 
@@ -42,23 +42,23 @@ func SetupForCommand(cmd *cobra.Command, v *viper.Viper) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// CLIフラグを確認
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	quiet, _ := cmd.Flags().GetBool("quiet")
 	config.MergeWithFlags(verbose, quiet)
-	
+
 	// ロガーを再初期化
 	if err := Init(config); err != nil {
 		return err
 	}
-	
+
 	// コマンドコンテキストを追加
 	WithFields(
 		"command", cmd.Name(),
 		"args", cmd.Flags().Args(),
 	).Debug("コマンドを実行します")
-	
+
 	return nil
 }
 
@@ -69,7 +69,7 @@ func LogCommandStart(cmd *cobra.Command, args []string, startTime time.Time) {
 		Field("args", args),
 		Field("start_time", startTime),
 	}
-	
+
 	// 環境情報も追加
 	if IsDebugEnabled() {
 		fields = append(fields,
@@ -78,19 +78,19 @@ func LogCommandStart(cmd *cobra.Command, args []string, startTime time.Time) {
 			Field("arch", runtime.GOARCH),
 		)
 	}
-	
+
 	Info("コマンドを開始しました", fields...)
 }
 
 // LogCommandEnd はコマンド終了時のログを出力します
 func LogCommandEnd(cmd *cobra.Command, startTime time.Time, err error) {
 	duration := time.Since(startTime)
-	
+
 	fields := []zap.Field{
 		Field("command", cmd.Name()),
 		Duration("duration", duration),
 	}
-	
+
 	if err != nil {
 		fields = append(fields, ErrorField(err))
 		Error("コマンドがエラーで終了しました", fields...)
@@ -106,7 +106,7 @@ func LogAWSOperation(operation string, service string, fields ...zap.Field) {
 		Field("service", service),
 		Field("timestamp", time.Now()),
 	}
-	
+
 	allFields := append(baseFields, fields...)
 	Info("AWS操作を実行します", allFields...)
 }
@@ -118,9 +118,9 @@ func LogAWSOperationResult(operation string, service string, duration time.Durat
 		Field("service", service),
 		Duration("duration", duration),
 	}
-	
+
 	allFields := append(baseFields, fields...)
-	
+
 	if err != nil {
 		allFields = append(allFields, ErrorField(err))
 		Error("AWS操作がエラーで終了しました", allFields...)
@@ -137,7 +137,7 @@ func LogEnvSync(action string, source string, destination string, count int, fie
 		Field("destination", destination),
 		Field("count", count),
 	}
-	
+
 	allFields := append(baseFields, fields...)
 	Info("環境変数を同期しました", allFields...)
 }
@@ -148,7 +148,7 @@ func LogConfigLoad(configPath string, success bool, err error) {
 		Field("config_path", configPath),
 		Field("success", success),
 	}
-	
+
 	if err != nil {
 		fields = append(fields, ErrorField(err))
 		// 設定ファイルが見つからないのは通常の動作なのでDebugレベル
@@ -172,12 +172,12 @@ func StructuredError(msg string, err error, fields ...zap.Field) {
 		ErrorField(err),
 		Field("error_type", fmt.Sprintf("%T", err)),
 	}
-	
+
 	// スタックトレースが有効な場合は追加
 	if IsDebugEnabled() {
 		allFields = append(allFields, zap.Stack("stacktrace"))
 	}
-	
+
 	allFields = append(allFields, fields...)
 	Error(msg, allFields...)
 }
@@ -188,7 +188,7 @@ func FlushLogs() {
 		// Sync自体のエラーは標準エラー出力に出力
 		// ただし、stdout/stderrの場合はよくあるエラーなので、デバッグモードのみ表示
 		errStr := err.Error()
-		if IsDebugEnabled() && 
+		if IsDebugEnabled() &&
 			!strings.Contains(errStr, "inappropriate ioctl") &&
 			!strings.Contains(errStr, "bad file descriptor") &&
 			!strings.Contains(errStr, "invalid argument") {

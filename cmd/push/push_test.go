@@ -15,9 +15,9 @@ import (
 func TestPushCmd_Flags(t *testing.T) {
 	// Reset flags for testing
 	resetFlags()
-	
+
 	cmd := pushCmd
-	
+
 	// Test that all expected flags are present
 	assert.NotNil(t, cmd.Flags().Lookup("env"))
 	assert.NotNil(t, cmd.Flags().Lookup("prefix"))
@@ -29,27 +29,27 @@ func TestPushCmd_Flags(t *testing.T) {
 	assert.NotNil(t, cmd.Flags().Lookup("parallel"))
 	assert.NotNil(t, cmd.Flags().Lookup("max-workers"))
 	assert.NotNil(t, cmd.Flags().Lookup("batch-size"))
-	
+
 	// Test flag shortcuts
 	envFlag := cmd.Flags().Lookup("env")
 	assert.Equal(t, "e", envFlag.Shorthand)
-	
+
 	prefixFlag := cmd.Flags().Lookup("prefix")
 	assert.Equal(t, "p", prefixFlag.Shorthand)
-	
+
 	varsFlag := cmd.Flags().Lookup("vars")
 	assert.Equal(t, "v", varsFlag.Shorthand)
-	
+
 	forceFlag := cmd.Flags().Lookup("force")
 	assert.Equal(t, "f", forceFlag.Shorthand)
-	
+
 	allFlag := cmd.Flags().Lookup("all")
 	assert.Equal(t, "a", allFlag.Shorthand)
 }
 
 func TestPushCmd_Usage(t *testing.T) {
 	cmd := pushCmd
-	
+
 	assert.Equal(t, "push", cmd.Use)
 	assert.Contains(t, cmd.Short, "Push environment variables to AWS")
 	assert.Contains(t, cmd.Long, "Push environment variables to AWS Parameter Store or Secrets Manager")
@@ -113,11 +113,11 @@ func TestIsSensitive(t *testing.T) {
 			Error:    false,
 		},
 	}
-	
+
 	testutil.RunTestTable(t, testCases, func(t *testing.T, tc testutil.TestCase) {
 		key := tc.Input.(string)
 		expected := tc.Expected.(bool)
-		
+
 		actual := isSensitive(key)
 		assert.Equal(t, expected, actual)
 	})
@@ -125,7 +125,7 @@ func TestIsSensitive(t *testing.T) {
 
 func TestGetTargetDescription(t *testing.T) {
 	cfg := testutil.CreateTestConfig()
-	
+
 	testCases := []struct {
 		name     string
 		envName  string
@@ -142,7 +142,7 @@ func TestGetTargetDescription(t *testing.T) {
 			expected: "AWS Secrets Manager (us-east-1)",
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			description := getTargetDescription(cfg, tc.envName)
@@ -155,7 +155,7 @@ func TestConfirmPush(t *testing.T) {
 	// Test with simulated user input
 	// Note: This is a simplified test as we can't easily simulate stdin input
 	// In a real implementation, you might want to refactor confirmPush to accept an io.Reader
-	
+
 	// For now, test the formatting of the confirmation message
 	// by capturing what would be printed
 	testCases := []struct {
@@ -166,7 +166,7 @@ func TestConfirmPush(t *testing.T) {
 		{count: 10, envName: "prod"},
 		{count: 0, envName: "empty"},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run("confirm_message", func(t *testing.T) {
 			// Test that the function handles different inputs correctly
@@ -183,25 +183,25 @@ func TestShowDifferences(t *testing.T) {
 		"NEW_VAR":      "new_value",
 		"SAME_VAR":     "same_value",
 	}
-	
+
 	remote := map[string]string{
 		"EXISTING_VAR": "old_value",
 		"REMOTE_ONLY":  "remote_value",
 		"SAME_VAR":     "same_value",
 	}
-	
+
 	// Capture output
 	stdout, _ := testutil.CaptureOutput(t, func() {
 		showDifferences(local, remote)
 	})
-	
+
 	// Check that differences are properly identified
 	assert.Contains(t, stdout, "Added:")
 	assert.Contains(t, stdout, "+ NEW_VAR")
-	
+
 	assert.Contains(t, stdout, "Modified:")
 	assert.Contains(t, stdout, "~ EXISTING_VAR")
-	
+
 	assert.Contains(t, stdout, "Will remain in remote")
 	assert.Contains(t, stdout, "? REMOTE_ONLY")
 }
@@ -211,17 +211,17 @@ func TestShowDifferences_NoChanges(t *testing.T) {
 		"VAR1": "value1",
 		"VAR2": "value2",
 	}
-	
+
 	remote := map[string]string{
 		"VAR1": "value1",
 		"VAR2": "value2",
 	}
-	
+
 	// Capture output
 	stdout, _ := testutil.CaptureOutput(t, func() {
 		showDifferences(local, remote)
 	})
-	
+
 	assert.Contains(t, stdout, "No changes detected")
 }
 
@@ -229,14 +229,14 @@ func TestRunPush_ConfigValidation(t *testing.T) {
 	// Create temporary directory for test
 	tempDir := testutil.TempDir(t)
 	testutil.ChangeDir(t, tempDir)
-	
+
 	// Test with missing configuration
 	t.Run("missing_config", func(t *testing.T) {
 		resetFlags()
-		
+
 		cmd := &cobra.Command{}
 		err := runPush(cmd, []string{})
-		
+
 		// Should succeed with default config when no config file exists
 		// (returns default config in real implementation)
 		// For this test, we expect it to attempt to load config
@@ -248,29 +248,29 @@ func TestRunPush_FlagParsing(t *testing.T) {
 	// Test flag parsing without actually running AWS operations
 	tempDir := testutil.TempDir(t)
 	testutil.ChangeDir(t, tempDir)
-	
+
 	// Create a test config file
 	configContent := testutil.NewTestFixtures().ConfigYAML()
 	testutil.WriteFile(t, tempDir, ".envyrc", configContent)
-	
+
 	// Create test env files
 	envContent := testutil.CreateTestEnvContent()
 	testutil.WriteFile(t, tempDir, ".env.dev", envContent)
-	
+
 	testCases := []struct {
-		name string
-		args []string
-		env  string
-		vars string
-		force bool
+		name   string
+		args   []string
+		env    string
+		vars   string
+		force  bool
 		dryRun bool
-		all bool
+		all    bool
 	}{
 		{
-			name: "basic_flags",
-			args: []string{"--env", "dev", "--force", "--dry-run"},
-			env:  "dev",
-			force: true,
+			name:   "basic_flags",
+			args:   []string{"--env", "dev", "--force", "--dry-run"},
+			env:    "dev",
+			force:  true,
 			dryRun: true,
 		},
 		{
@@ -281,19 +281,19 @@ func TestRunPush_FlagParsing(t *testing.T) {
 		{
 			name: "all_environments",
 			args: []string{"--all"},
-			all: true,
+			all:  true,
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Reset flags
 			resetFlags()
-			
+
 			// Set up command with flags
 			cmd := pushCmd
 			cmd.ParseFlags(tc.args)
-			
+
 			// Verify flags were parsed correctly
 			if tc.env != "" {
 				assert.Equal(t, tc.env, environment)
@@ -310,7 +310,7 @@ func TestRunPush_FlagParsing(t *testing.T) {
 
 func TestPushEnvironment_EnvironmentSelection(t *testing.T) {
 	cfg := testutil.CreateTestConfig()
-	
+
 	testCases := []struct {
 		name            string
 		envName         string
@@ -340,22 +340,22 @@ func TestPushEnvironment_EnvironmentSelection(t *testing.T) {
 			expectError:     true, // Environment config doesn't exist
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			envConfig, err := cfg.GetEnvironment(tc.envName)
-			
+
 			if tc.expectError {
 				assert.Error(t, err)
 				return
 			}
-			
+
 			assert.NoError(t, err)
 			assert.NotNil(t, envConfig)
-			
+
 			service := cfg.GetAWSService(tc.envName)
 			path := cfg.GetParameterPath(tc.envName)
-			
+
 			assert.Equal(t, tc.expectedService, service)
 			assert.Equal(t, tc.expectedPath, path)
 		})
@@ -364,7 +364,7 @@ func TestPushEnvironment_EnvironmentSelection(t *testing.T) {
 
 func TestPushEnvironment_VariableFiltering(t *testing.T) {
 	envFile := testutil.CreateTestEnvFile()
-	
+
 	// Test variable filtering logic
 	testCases := []struct {
 		name           string
@@ -403,14 +403,14 @@ func TestPushEnvironment_VariableFiltering(t *testing.T) {
 			expectedCount:  2,
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			filteredFile := testutil.CreateLargeTestEnvFile(0) // Start with empty file
-			
+
 			if tc.variableFilter != "" {
 				varsToKeep := strings.Split(tc.variableFilter, ",")
-				
+
 				for _, varName := range varsToKeep {
 					varName = strings.TrimSpace(varName)
 					if value, exists := envFile.Get(varName); exists {
@@ -420,9 +420,9 @@ func TestPushEnvironment_VariableFiltering(t *testing.T) {
 			} else {
 				filteredFile = envFile
 			}
-			
+
 			assert.Equal(t, tc.expectedCount, len(filteredFile.Variables))
-			
+
 			for _, expectedVar := range tc.expectedVars {
 				_, exists := filteredFile.Get(expectedVar)
 				assert.True(t, exists, "Variable %s should exist in filtered file", expectedVar)
@@ -434,15 +434,15 @@ func TestPushEnvironment_VariableFiltering(t *testing.T) {
 func TestCreateParameterStoreTask(t *testing.T) {
 	key := "TEST_VAR"
 	path := "/test-project/test/"
-	
+
 	// Test parameter name construction
 	expectedParamName := path + key
 	if !strings.HasSuffix(path, "/") {
 		expectedParamName = path + "/" + key
 	}
-	
+
 	assert.Equal(t, "/test-project/test/TEST_VAR", expectedParamName)
-	
+
 	// Test parameter type determination
 	t.Run("string_parameter", func(t *testing.T) {
 		paramType := "String"
@@ -451,7 +451,7 @@ func TestCreateParameterStoreTask(t *testing.T) {
 		}
 		assert.Equal(t, "String", paramType, "TEST_VAR should not be sensitive")
 	})
-	
+
 	t.Run("secure_parameter", func(t *testing.T) {
 		sensitiveKey := "API_SECRET"
 		paramType := "String"
@@ -465,11 +465,11 @@ func TestCreateParameterStoreTask(t *testing.T) {
 func TestCreateSecretsManagerTask(t *testing.T) {
 	key := "TEST_VAR"
 	path := "/test-project/test/"
-	
+
 	// Test secret name construction
 	secretName := strings.Trim(path, "/")
 	secretName = strings.ReplaceAll(secretName, "/", "-") + "-" + key
-	
+
 	expectedSecretName := "test-project-test-TEST_VAR"
 	assert.Equal(t, expectedSecretName, secretName)
 }
@@ -480,7 +480,7 @@ func BenchmarkIsSensitive(b *testing.B) {
 		"APP_NAME", "DEBUG", "API_SECRET", "PASSWORD",
 		"JWT_TOKEN", "DATABASE_URL", "PRIVATE_KEY", "PORT",
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		key := keys[i%len(keys)]
@@ -490,7 +490,7 @@ func BenchmarkIsSensitive(b *testing.B) {
 
 func BenchmarkGetTargetDescription(b *testing.B) {
 	cfg := testutil.CreateTestConfig()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		envName := "test"
@@ -519,18 +519,18 @@ func resetFlags() {
 func setupTestEnvironment(t *testing.T) (string, *config.Config) {
 	tempDir := testutil.TempDir(t)
 	testutil.ChangeDir(t, tempDir)
-	
+
 	// Create test config
 	cfg := testutil.CreateTestConfig()
 	configContent := testutil.NewTestFixtures().ConfigYAML()
 	testutil.WriteFile(t, tempDir, ".envyrc", configContent)
-	
+
 	// Create test env files
 	envContent := testutil.CreateTestEnvContent()
 	testutil.WriteFile(t, tempDir, ".env.test", envContent)
 	testutil.WriteFile(t, tempDir, ".env.dev", envContent)
 	testutil.WriteFile(t, tempDir, ".env.prod", envContent)
-	
+
 	return tempDir, cfg
 }
 
@@ -540,47 +540,47 @@ func TestPushCmd_Integration(t *testing.T) {
 	defer func() {
 		os.RemoveAll(tempDir)
 	}()
-	
+
 	t.Run("dry_run_mode", func(t *testing.T) {
 		resetFlags()
 		dryRun = true
 		environment = "test"
-		
+
 		// Test dry run logic
 		assert.True(t, dryRun)
 		assert.Equal(t, "test", environment)
-		
+
 		// Verify configuration
 		assert.NotNil(t, cfg)
 		assert.NoError(t, cfg.Validate())
-		
+
 		// Verify environment exists
 		env, err := cfg.GetEnvironment(environment)
 		assert.NoError(t, err)
 		assert.NotNil(t, env)
 	})
-	
+
 	t.Run("force_mode", func(t *testing.T) {
 		resetFlags()
 		force = true
 		environment = "test"
-		
+
 		assert.True(t, force)
 		assert.Equal(t, "test", environment)
 	})
-	
+
 	t.Run("all_environments", func(t *testing.T) {
 		resetFlags()
 		all = true
-		
+
 		assert.True(t, all)
-		
+
 		// Test that all environments are selected
 		environments := []string{}
 		for envName := range cfg.Environments {
 			environments = append(environments, envName)
 		}
-		
+
 		assert.Contains(t, environments, "test")
 		assert.Contains(t, environments, "dev")
 		assert.Contains(t, environments, "prod")
@@ -591,31 +591,31 @@ func TestPushCmd_Integration(t *testing.T) {
 func TestPushCmd_ErrorHandling(t *testing.T) {
 	testCases := []testutil.TestCase{
 		{
-			Name: "invalid_environment",
-			Input: "nonexistent",
+			Name:     "invalid_environment",
+			Input:    "nonexistent",
 			Expected: "environment 'nonexistent' not found",
-			Error: true,
+			Error:    true,
 		},
 		{
-			Name: "empty_environment_name",
-			Input: "",
+			Name:     "empty_environment_name",
+			Input:    "",
 			Expected: nil, // Should use default environment
-			Error: false,
+			Error:    false,
 		},
 	}
-	
+
 	cfg := testutil.CreateTestConfig()
-	
+
 	testutil.RunTestTable(t, testCases, func(t *testing.T, tc testutil.TestCase) {
 		envName := tc.Input.(string)
-		
+
 		var err error
 		if envName == "" {
 			envName = cfg.DefaultEnvironment
 		}
-		
+
 		_, err = cfg.GetEnvironment(envName)
-		
+
 		if tc.Error {
 			assert.Error(t, err)
 			if tc.Expected != nil {
@@ -630,7 +630,7 @@ func TestPushCmd_ErrorHandling(t *testing.T) {
 // Parallel tests
 func TestPushCmd_ConcurrentOperations(t *testing.T) {
 	cfg := testutil.CreateTestConfig()
-	
+
 	// Test concurrent access to configuration
 	testutil.AssertConcurrentSafe(t, func() {
 		cfg.GetEnvironment("test")
@@ -646,15 +646,15 @@ func TestPushCmd_MemoryUsage(t *testing.T) {
 	testutil.AssertMemoryUsage(t, func() {
 		cfg := testutil.CreateTestConfig()
 		envFile := testutil.CreateLargeTestEnvFile(1000)
-		
+
 		// Simulate memory-intensive operations
 		vars, cleanup := envFile.ToMapWithPool()
 		defer cleanup()
-		
+
 		for i := 0; i < 100; i++ {
 			getTargetDescription(cfg, "test")
 			cfg.GetAWSService("test")
-			
+
 			for key := range vars {
 				isSensitive(key)
 			}
@@ -666,16 +666,16 @@ func TestPushCmd_MemoryUsage(t *testing.T) {
 func TestPushCmd_Performance(t *testing.T) {
 	cfg := testutil.CreateTestConfig()
 	envFile := testutil.CreateLargeTestEnvFile(1000)
-	
+
 	testutil.AssertPerformance(t, func() {
 		vars, cleanup := envFile.ToMapWithPool()
 		defer cleanup()
-		
+
 		// Simulate processing variables
 		for key := range vars {
 			isSensitive(key)
 		}
-		
+
 		getTargetDescription(cfg, "test")
 		cfg.GetAWSService("test")
 		cfg.GetParameterPath("test")

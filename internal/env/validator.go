@@ -10,11 +10,11 @@ import (
 
 // ValidationRule represents a validation rule for environment variables
 type ValidationRule struct {
-	Pattern     string
-	Type        string // string, int, bool, url, email, regex
-	Required    bool
-	MinLength   int
-	MaxLength   int
+	Pattern       string
+	Type          string // string, int, bool, url, email, regex
+	Required      bool
+	MinLength     int
+	MaxLength     int
 	AllowedValues []string
 }
 
@@ -105,7 +105,7 @@ func (v *Validator) validateVariable(key, value string, rule *ValidationRule) er
 			}
 		}
 		if !allowed {
-			return fmt.Errorf("variable '%s' has invalid value '%s' (allowed: %s)", 
+			return fmt.Errorf("variable '%s' has invalid value '%s' (allowed: %s)",
 				key, value, strings.Join(rule.AllowedValues, ", "))
 		}
 	}

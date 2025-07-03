@@ -260,4 +260,3 @@ func FileError(message string) *EnvyError {
 func NetworkError(message string) *EnvyError {
 	return New(ErrNetworkUnavailable, message)
 }
-

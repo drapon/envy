@@ -168,7 +168,7 @@ func (efs *EnvFileStreamer) StreamParse(ctx context.Context, reader io.Reader) *
 			MaxLineSize: 64 * 1024,
 			LineProcessor: func(line string) error {
 				lineNum++
-				
+
 				// Skip empty lines
 				if strings.TrimSpace(line) == "" {
 					return nil
@@ -185,7 +185,7 @@ func (efs *EnvFileStreamer) StreamParse(ctx context.Context, reader io.Reader) *
 					if len(parts) == 2 {
 						key := strings.TrimSpace(parts[0])
 						value := strings.TrimSpace(parts[1])
-						
+
 						var comment string
 						if idx := strings.Index(value, " #"); idx != -1 {
 							comment = strings.TrimSpace(value[idx+2:])
@@ -262,7 +262,7 @@ func (bp *BatchProcessor) ProcessBatch(ctx context.Context, jobs []BatchJob) err
 
 	jobChan := make(chan BatchJob, bp.batchSize)
 	errorChan := make(chan error, bp.workers)
-	
+
 	// Start workers
 	var wg sync.WaitGroup
 	for i := 0; i < bp.workers; i++ {
@@ -275,7 +275,7 @@ func (bp *BatchProcessor) ProcessBatch(ctx context.Context, jobs []BatchJob) err
 					return
 				default:
 				}
-				
+
 				if err := job.Process(); err != nil {
 					select {
 					case errorChan <- err:

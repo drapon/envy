@@ -57,12 +57,12 @@ func Execute() {
 		cache.CloseGlobalCache()
 		log.FlushLogs()
 	}()
-	
+
 	// Check for updates in background
 	if !viper.GetBool("no_update_check") {
 		updater.CheckAndNotify(rootCmd.Context(), version.GetInfo().Version)
 	}
-	
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Error("Command execution error", log.ErrorField(err))
 		fmt.Fprintln(os.Stderr, color.FormatError(err.Error()))
@@ -148,13 +148,13 @@ func initConfig() {
 		// It's not an error if the config file is not found
 		log.LogConfigLoad("", false, err)
 	}
-	
+
 	// Initialize logging system
 	if err := log.InitializeLogger(viper.GetViper()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s %s\n", color.FormatError("Failed to initialize logger:"), err)
 		// Continue program even if logger initialization fails
 	}
-	
+
 	// Initialize cache system
 	if err := cache.InitGlobalCache(viper.GetViper()); err != nil {
 		log.Warn("Failed to initialize cache system", log.ErrorField(err))

@@ -12,14 +12,14 @@ import (
 
 // Common error types
 var (
-	ErrParameterNotFound     = errors.New("parameter not found")
-	ErrSecretNotFound        = errors.New("secret not found")
-	ErrAccessDenied          = errors.New("access denied")
-	ErrInvalidParameter      = errors.New("invalid parameter")
+	ErrParameterNotFound      = errors.New("parameter not found")
+	ErrSecretNotFound         = errors.New("secret not found")
+	ErrAccessDenied           = errors.New("access denied")
+	ErrInvalidParameter       = errors.New("invalid parameter")
 	ErrParameterAlreadyExists = errors.New("parameter already exists")
-	ErrSecretAlreadyExists   = errors.New("secret already exists")
-	ErrRateLimitExceeded     = errors.New("rate limit exceeded")
-	ErrInvalidRequest        = errors.New("invalid request")
+	ErrSecretAlreadyExists    = errors.New("secret already exists")
+	ErrRateLimitExceeded      = errors.New("rate limit exceeded")
+	ErrInvalidRequest         = errors.New("invalid request")
 )
 
 // IsNotFoundError checks if the error is a not found error
@@ -31,11 +31,11 @@ func IsNotFoundError(err error) bool {
 	// Check for specific AWS errors
 	var ssmNotFound *ssmtypes.ParameterNotFound
 	var secretNotFound *types.ResourceNotFoundException
-	
-	return errors.As(err, &ssmNotFound) || 
-		   errors.As(err, &secretNotFound) ||
-		   errors.Is(err, ErrParameterNotFound) ||
-		   errors.Is(err, ErrSecretNotFound)
+
+	return errors.As(err, &ssmNotFound) ||
+		errors.As(err, &secretNotFound) ||
+		errors.Is(err, ErrParameterNotFound) ||
+		errors.Is(err, ErrSecretNotFound)
 }
 
 // IsAccessDeniedError checks if the error is an access denied error
@@ -47,9 +47,9 @@ func IsAccessDeniedError(err error) bool {
 	// Check for common access denied patterns
 	errStr := err.Error()
 	return strings.Contains(errStr, "AccessDenied") ||
-		   strings.Contains(errStr, "UnauthorizedOperation") ||
-		   strings.Contains(errStr, "is not authorized to perform") ||
-		   errors.Is(err, ErrAccessDenied)
+		strings.Contains(errStr, "UnauthorizedOperation") ||
+		strings.Contains(errStr, "is not authorized to perform") ||
+		errors.Is(err, ErrAccessDenied)
 }
 
 // IsAlreadyExistsError checks if the error indicates a resource already exists
@@ -60,11 +60,11 @@ func IsAlreadyExistsError(err error) bool {
 
 	var ssmExists *ssmtypes.ParameterAlreadyExists
 	var secretExists *types.ResourceExistsException
-	
-	return errors.As(err, &ssmExists) || 
-		   errors.As(err, &secretExists) ||
-		   errors.Is(err, ErrParameterAlreadyExists) ||
-		   errors.Is(err, ErrSecretAlreadyExists)
+
+	return errors.As(err, &ssmExists) ||
+		errors.As(err, &secretExists) ||
+		errors.Is(err, ErrParameterAlreadyExists) ||
+		errors.Is(err, ErrSecretAlreadyExists)
 }
 
 // IsRateLimitError checks if the error is due to rate limiting
@@ -75,9 +75,9 @@ func IsRateLimitError(err error) bool {
 
 	errStr := err.Error()
 	return strings.Contains(errStr, "Throttling") ||
-		   strings.Contains(errStr, "Rate exceeded") ||
-		   strings.Contains(errStr, "TooManyRequestsException") ||
-		   errors.Is(err, ErrRateLimitExceeded)
+		strings.Contains(errStr, "Rate exceeded") ||
+		strings.Contains(errStr, "TooManyRequestsException") ||
+		errors.Is(err, ErrRateLimitExceeded)
 }
 
 // WrapAWSError wraps AWS errors with more context

@@ -22,11 +22,11 @@ func TempDir(t *testing.T) string {
 	t.Helper()
 	dir, err := os.MkdirTemp("", "envy-test-*")
 	require.NoError(t, err)
-	
+
 	t.Cleanup(func() {
 		os.RemoveAll(dir)
 	})
-	
+
 	return dir
 }
 
@@ -35,15 +35,15 @@ func TempFile(t *testing.T, content string) string {
 	t.Helper()
 	f, err := os.CreateTemp("", "envy-test-*.env")
 	require.NoError(t, err)
-	
+
 	_, err = f.WriteString(content)
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
-	
+
 	t.Cleanup(func() {
 		os.Remove(f.Name())
 	})
-	
+
 	return f.Name()
 }
 
@@ -118,7 +118,7 @@ func AssertEnvFileEqual(t *testing.T, expected, actual *env.File) {
 // Create test configs directly in your tests like:
 //
 // cfg := &config.Config{
-//     Project:            "test-project", 
+//     Project:            "test-project",
 //     DefaultEnvironment: "test",
 //     AWS: config.AWSConfig{
 //         Service: "parameter_store",
@@ -204,7 +204,12 @@ func BytesBuffer() *bytes.Buffer {
 
 // CreateContext creates a test context with timeout
 func CreateContext(timeout time.Duration) context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	// Store cancel function to be called by test cleanup
+	go func() {
+		<-ctx.Done()
+		cancel()
+	}()
 	return ctx
 }
 
@@ -218,10 +223,10 @@ func WaitWithTimeout(t *testing.T, timeout time.Duration, condition func() bool)
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -237,13 +242,13 @@ func WaitWithTimeout(t *testing.T, timeout time.Duration, condition func() bool)
 // AssertEventuallyTrue asserts that a condition becomes true within timeout
 func AssertEventuallyTrue(t *testing.T, condition func() bool, timeout time.Duration, msgAndArgs ...interface{}) {
 	t.Helper()
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -274,13 +279,13 @@ func RunTestTable(t *testing.T, testCases []TestCase, testFunc func(*testing.T, 
 			if tc.Setup != nil {
 				tc.Setup(t)
 			}
-			
+
 			if tc.Cleanup != nil {
 				t.Cleanup(func() {
 					tc.Cleanup(t)
 				})
 			}
-			
+
 			testFunc(t, tc)
 		})
 	}
@@ -314,57 +319,57 @@ func (m *MockTime) Set(t time.Time) {
 // CaptureOutput captures stdout and stderr for testing
 func CaptureOutput(t *testing.T, fn func()) (stdout, stderr string) {
 	t.Helper()
-	
+
 	// Save original stdout and stderr
 	origStdout := os.Stdout
 	origStderr := os.Stderr
-	
+
 	// Create pipes
 	stdoutR, stdoutW, err := os.Pipe()
 	require.NoError(t, err)
 	stderrR, stderrW, err := os.Pipe()
 	require.NoError(t, err)
-	
+
 	// Replace stdout and stderr
 	os.Stdout = stdoutW
 	os.Stderr = stderrW
-	
+
 	// Channel to capture output
 	stdoutCh := make(chan string, 1)
 	stderrCh := make(chan string, 1)
-	
+
 	// Read from pipes
 	go func() {
 		var buf bytes.Buffer
 		io.Copy(&buf, stdoutR)
 		stdoutCh <- buf.String()
 	}()
-	
+
 	go func() {
 		var buf bytes.Buffer
 		io.Copy(&buf, stderrR)
 		stderrCh <- buf.String()
 	}()
-	
+
 	// Execute function
 	fn()
-	
+
 	// Close writers
 	stdoutW.Close()
 	stderrW.Close()
-	
+
 	// Restore original stdout and stderr
 	os.Stdout = origStdout
 	os.Stderr = origStderr
-	
+
 	// Get captured output
 	stdout = <-stdoutCh
 	stderr = <-stderrCh
-	
+
 	// Close readers
 	stdoutR.Close()
 	stderrR.Close()
-	
+
 	return stdout, stderr
 }
 
@@ -373,7 +378,7 @@ func SetEnv(t *testing.T, key, value string) {
 	t.Helper()
 	original := os.Getenv(key)
 	os.Setenv(key, value)
-	
+
 	t.Cleanup(func() {
 		if original == "" {
 			os.Unsetenv(key)
@@ -388,7 +393,7 @@ func UnsetEnv(t *testing.T, key string) {
 	t.Helper()
 	original := os.Getenv(key)
 	os.Unsetenv(key)
-	
+
 	t.Cleanup(func() {
 		if original != "" {
 			os.Setenv(key, original)
@@ -401,10 +406,10 @@ func ChangeDir(t *testing.T, dir string) {
 	t.Helper()
 	original, err := os.Getwd()
 	require.NoError(t, err)
-	
+
 	err = os.Chdir(dir)
 	require.NoError(t, err)
-	
+
 	t.Cleanup(func() {
 		os.Chdir(original)
 	})
@@ -421,11 +426,11 @@ func CreateTestConfig() *config.Config {
 			Profile: "default",
 		},
 		Cache: config.CacheConfig{
-			Enabled:     true,
-			Type:        "hybrid",
-			TTL:         "1h",
-			MaxSize:     "100MB",
-			MaxEntries:  1000,
+			Enabled:    true,
+			Type:       "hybrid",
+			TTL:        "1h",
+			MaxSize:    "100MB",
+			MaxEntries: 1000,
 		},
 		Memory: config.MemoryConfig{
 			Enabled:           true,

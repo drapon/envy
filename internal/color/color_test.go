@@ -35,7 +35,7 @@ func TestPrintFunctions(t *testing.T) {
 	PrintWarning("Test warning message")
 	PrintInfo("Test info message")
 	PrintBold("Test bold message")
-	
+
 	// Test with format strings
 	PrintSuccess("Test success with %s", "formatting")
 	PrintError("Test error with number %d", 42)
@@ -48,7 +48,7 @@ func TestColorToggle(t *testing.T) {
 	if result != "test" {
 		t.Error("DisableColors() didn't remove color formatting")
 	}
-	
+
 	EnableColors()
 	result = FormatSuccess("test")
 	if result == "test" {

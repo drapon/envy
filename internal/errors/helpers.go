@@ -24,8 +24,8 @@ func IsValidationError(err error) bool {
 	var envyErr *EnvyError
 	if errors.As(err, &envyErr) {
 		switch envyErr.Code {
-		case ErrValidationFailed, ErrInvalidArgument, ErrInvalidEnvironment, 
-			 ErrInvalidKeyFormat, ErrRequiredField:
+		case ErrValidationFailed, ErrInvalidArgument, ErrInvalidEnvironment,
+			ErrInvalidKeyFormat, ErrRequiredField:
 			return true
 		}
 	}
@@ -38,8 +38,8 @@ func IsAWSError(err error) bool {
 	if errors.As(err, &envyErr) {
 		switch envyErr.Code {
 		case ErrAWSAuth, ErrAWSConnection, ErrAWSRateLimit, ErrAWSAccessDenied,
-			 ErrParameterNotFound, ErrSecretNotFound, ErrParameterExists, 
-			 ErrSecretExists, ErrAWSTimeout:
+			ErrParameterNotFound, ErrSecretNotFound, ErrParameterExists,
+			ErrSecretExists, ErrAWSTimeout:
 			return true
 		}
 	}
@@ -160,11 +160,11 @@ func WrapAWSError(err error, operation string, resource string) *EnvyError {
 
 	// Map specific AWS errors
 	errStr := err.Error()
-	
+
 	// Authentication errors
-	if strings.Contains(errStr, "AccessDenied") || 
-	   strings.Contains(errStr, "UnauthorizedOperation") ||
-	   strings.Contains(errStr, "is not authorized to perform") {
+	if strings.Contains(errStr, "AccessDenied") ||
+		strings.Contains(errStr, "UnauthorizedOperation") ||
+		strings.Contains(errStr, "is not authorized to perform") {
 		return New(ErrAWSAccessDenied, "AWS access denied").
 			WithCause(err).
 			WithDetails("operation", operation).
@@ -173,7 +173,7 @@ func WrapAWSError(err error, operation string, resource string) *EnvyError {
 
 	// Not found errors
 	if strings.Contains(errStr, "ParameterNotFound") ||
-	   strings.Contains(errStr, "Parameter not found") {
+		strings.Contains(errStr, "Parameter not found") {
 		return New(ErrParameterNotFound, "Parameter not found").
 			WithCause(err).
 			WithDetails("operation", operation).
@@ -181,7 +181,7 @@ func WrapAWSError(err error, operation string, resource string) *EnvyError {
 	}
 
 	if strings.Contains(errStr, "ResourceNotFoundException") ||
-	   strings.Contains(errStr, "Secret not found") {
+		strings.Contains(errStr, "Secret not found") {
 		return New(ErrSecretNotFound, "Secret not found").
 			WithCause(err).
 			WithDetails("operation", operation).
@@ -205,8 +205,8 @@ func WrapAWSError(err error, operation string, resource string) *EnvyError {
 
 	// Rate limiting
 	if strings.Contains(errStr, "Throttling") ||
-	   strings.Contains(errStr, "Rate exceeded") ||
-	   strings.Contains(errStr, "TooManyRequestsException") {
+		strings.Contains(errStr, "Rate exceeded") ||
+		strings.Contains(errStr, "TooManyRequestsException") {
 		return New(ErrAWSRateLimit, "AWS API rate limit exceeded").
 			WithCause(err).
 			WithRetriable(true).
@@ -215,7 +215,7 @@ func WrapAWSError(err error, operation string, resource string) *EnvyError {
 
 	// Timeout
 	if strings.Contains(errStr, "RequestTimeout") ||
-	   strings.Contains(errStr, "timeout") {
+		strings.Contains(errStr, "timeout") {
 		return New(ErrAWSTimeout, "AWS request timeout").
 			WithCause(err).
 			WithRetriable(true).
@@ -238,14 +238,14 @@ func WrapFileError(err error, filepath string) *EnvyError {
 	errStr := err.Error()
 
 	if strings.Contains(errStr, "no such file") ||
-	   strings.Contains(errStr, "cannot find the file") {
+		strings.Contains(errStr, "cannot find the file") {
 		return New(ErrFileNotFound, "File not found").
 			WithCause(err).
 			WithDetails("file", filepath)
 	}
 
 	if strings.Contains(errStr, "permission denied") ||
-	   strings.Contains(errStr, "access is denied") {
+		strings.Contains(errStr, "access is denied") {
 		return New(ErrFilePermission, "File permission denied").
 			WithCause(err).
 			WithDetails("file", filepath)
@@ -271,13 +271,13 @@ func WrapNetworkError(err error) *EnvyError {
 	}
 
 	if strings.Contains(errStr, "no such host") ||
-	   strings.Contains(errStr, "cannot resolve") {
+		strings.Contains(errStr, "cannot resolve") {
 		return New(ErrDNSResolution, "DNS resolution failed").
 			WithCause(err)
 	}
 
 	if strings.Contains(errStr, "connection refused") ||
-	   strings.Contains(errStr, "network is unreachable") {
+		strings.Contains(errStr, "network is unreachable") {
 		return New(ErrNetworkUnavailable, "Network unavailable").
 			WithCause(err).
 			WithRetriable(true)

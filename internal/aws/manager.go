@@ -31,7 +31,7 @@ func (m *Manager) GetConfig() *config.Config {
 // NewManager creates a new AWS manager
 func NewManager(cfg *config.Config) (*Manager, error) {
 	ctx := context.Background()
-	
+
 	// Create AWS client
 	awsClient, err := client.NewClient(ctx, client.Options{
 		Region:  cfg.AWS.Region,
@@ -102,12 +102,12 @@ func (m *Manager) PullEnvironment(ctx context.Context, envName string) (*env.Fil
 
 	// Create env file with memory efficiency
 	file := env.NewFile()
-	
+
 	// Use batch processing for large variable sets
 	if len(vars) > 100 {
 		return m.pullEnvironmentBatch(ctx, vars)
 	}
-	
+
 	for key, value := range vars {
 		select {
 		case <-ctx.Done():
@@ -186,7 +186,7 @@ func (m *Manager) pushToParameterStore(ctx context.Context, path string, vars ma
 		if err != nil {
 			return err
 		}
-		
+
 		if len(existing) > 0 {
 			// Show existing parameters and ask for action
 			action := m.promptBulkOverwrite(existing)
@@ -227,15 +227,15 @@ func (m *Manager) pushToParameterStore(ctx context.Context, path string, vars ma
 			return ctx.Err()
 		default:
 		}
-		
+
 		paramName := path + key
-		
+
 		// Determine parameter type based on key
 		paramType := "String"
 		if strings.Contains(strings.ToLower(key), "password") ||
-		   strings.Contains(strings.ToLower(key), "secret") ||
-		   strings.Contains(strings.ToLower(key), "key") ||
-		   strings.Contains(strings.ToLower(key), "token") {
+			strings.Contains(strings.ToLower(key), "secret") ||
+			strings.Contains(strings.ToLower(key), "key") ||
+			strings.Contains(strings.ToLower(key), "token") {
 			paramType = "SecureString"
 		}
 
@@ -251,21 +251,21 @@ func (m *Manager) pushToParameterStore(ctx context.Context, path string, vars ma
 // checkExistingParameters checks which parameters already exist
 func (m *Manager) checkExistingParameters(ctx context.Context, path string, vars map[string]string) ([]string, error) {
 	existing := []string{}
-	
+
 	// Get current parameters
 	current, err := m.pullFromParameterStore(ctx, path)
 	if err != nil {
 		// If path doesn't exist, no existing parameters
 		return existing, nil
 	}
-	
+
 	// Check which variables already exist
 	for key := range vars {
 		if _, exists := current[key]; exists {
 			existing = append(existing, key)
 		}
 	}
-	
+
 	return existing, nil
 }
 
@@ -276,7 +276,7 @@ func (m *Manager) promptBulkOverwrite(existing []string) string {
 		fmt.Printf("  - %s\n", key)
 	}
 	fmt.Println()
-	
+
 	// Try interactive menu first
 	options := []string{
 		"Overwrite all",
@@ -284,13 +284,13 @@ func (m *Manager) promptBulkOverwrite(existing []string) string {
 		"Select individually",
 		"Cancel",
 	}
-	
+
 	selected, err := prompt.InteractiveSelect("What would you like to do?", options, 1) // Default to "Skip all"
 	if err != nil {
 		// Fallback to simple menu
 		return m.promptBulkOverwriteSimple(existing)
 	}
-	
+
 	switch selected {
 	case 0:
 		return "all"
@@ -313,7 +313,7 @@ func (m *Manager) promptBulkOverwriteSimple(existing []string) string {
 		{Label: "Select individually", Value: "select", Description: ""},
 		{Label: "Cancel", Value: "cancel", Description: ""},
 	}
-	
+
 	return prompt.SimpleMenu("\nWhat would you like to do?", options)
 }
 
@@ -326,10 +326,10 @@ func (m *Manager) promptOverwriteSingle(key string) bool {
 func (m *Manager) promptOverwriteSecret(secretName string) bool {
 	fmt.Printf("\nSecret already exists: %s\n", secretName)
 	fmt.Print("Overwrite? [y/N]: ")
-	
+
 	var response string
 	fmt.Scanln(&response)
-	
+
 	response = strings.ToLower(strings.TrimSpace(response))
 	return response == "y" || response == "yes"
 }
@@ -353,15 +353,15 @@ func (m *Manager) pushToSecretsManager(ctx context.Context, path string, vars ma
 	secretName = strings.ReplaceAll(secretName, "/", "-")
 
 	// Create or update secret
-	err := m.secretsManager.CreateOrUpdateSecret(ctx, secretName, 
+	err := m.secretsManager.CreateOrUpdateSecret(ctx, secretName,
 		fmt.Sprintf("Environment variables for %s", secretName), vars)
-	
+
 	if err != nil {
 		if errors.IsAlreadyExistsError(err) && !overwrite {
 			// Ask user if they want to overwrite
 			if m.promptOverwriteSecret(secretName) {
 				// Retry with overwrite
-				err = m.secretsManager.CreateOrUpdateSecret(ctx, secretName, 
+				err = m.secretsManager.CreateOrUpdateSecret(ctx, secretName,
 					fmt.Sprintf("Environment variables for %s", secretName), vars)
 				if err != nil {
 					return errors.WrapAWSError(err, "create/update secret", secretName)
@@ -423,7 +423,7 @@ func (m *Manager) GetSecretsManager() *secrets_manager.Manager {
 func (m *Manager) pullEnvironmentBatch(ctx context.Context, vars map[string]string) (*env.File, error) {
 	file := env.NewFile()
 	batchProcessor := memory.NewBatchProcessor(50, 4) // 50 items per batch, 4 workers
-	
+
 	// Create batch jobs
 	jobs := make([]memory.BatchJob, 0, len(vars))
 	for key, value := range vars {
@@ -434,7 +434,7 @@ func (m *Manager) pullEnvironmentBatch(ctx context.Context, vars map[string]stri
 			value: value,
 		})
 	}
-	
+
 	return file, batchProcessor.ProcessBatch(ctx, jobs)
 }
 
@@ -453,7 +453,7 @@ func (job *setVariableJob) Process() error {
 // pushToParameterStoreBatch pushes variables to Parameter Store using batch processing
 func (m *Manager) pushToParameterStoreBatch(ctx context.Context, path string, vars map[string]string, overwrite bool) error {
 	batchProcessor := memory.NewBatchProcessor(25, 4) // 25 items per batch, 4 workers
-	
+
 	// Create batch jobs
 	jobs := make([]memory.BatchJob, 0, len(vars))
 	for key, value := range vars {
@@ -467,7 +467,7 @@ func (m *Manager) pushToParameterStoreBatch(ctx context.Context, path string, va
 			overwrite: overwrite,
 		})
 	}
-	
+
 	return batchProcessor.ProcessBatch(ctx, jobs)
 }
 
@@ -483,13 +483,13 @@ type pushParameterJob struct {
 
 func (job *pushParameterJob) Process() error {
 	paramName := job.path + job.key
-	
+
 	// Determine parameter type based on key
 	paramType := "String"
 	if strings.Contains(strings.ToLower(job.key), "password") ||
-	   strings.Contains(strings.ToLower(job.key), "secret") ||
-	   strings.Contains(strings.ToLower(job.key), "key") ||
-	   strings.Contains(strings.ToLower(job.key), "token") {
+		strings.Contains(strings.ToLower(job.key), "secret") ||
+		strings.Contains(strings.ToLower(job.key), "key") ||
+		strings.Contains(strings.ToLower(job.key), "token") {
 		paramType = "SecureString"
 	}
 
@@ -501,7 +501,7 @@ func (job *pushParameterJob) Process() error {
 		}
 		return errors.WrapAWSError(err, "put parameter", paramName)
 	}
-	
+
 	return nil
 }
 
@@ -515,7 +515,7 @@ func (m *Manager) PushEnvironmentWithMemoryOptimization(ctx context.Context, env
 			poolManager.ForceGC()
 		}()
 	}
-	
+
 	return m.PushEnvironment(ctx, envName, file, overwrite)
 }
 
@@ -553,17 +553,17 @@ func (m *Manager) PullEnvironmentWithStreaming(ctx context.Context, envName stri
 			return ctx.Err()
 		default:
 		}
-		
+
 		variable := &env.Variable{
 			Key:   key,
 			Value: value,
 			Line:  lineNum,
 		}
-		
+
 		if err := writer(variable); err != nil {
 			return fmt.Errorf("writer error for variable %s: %w", key, err)
 		}
-		
+
 		lineNum++
 	}
 
