@@ -2,11 +2,6 @@ run:
   timeout: 5m
   issues-exit-code: 1
   tests: true
-  exclude-dirs:
-    - vendor
-    - test/fixtures
-  exclude-files:
-    - ".*_test.go"
 
 output:
   formats:
@@ -148,6 +143,11 @@ linters-settings:
       local_replace_directives: false
 
 issues:
+  exclude-dirs:
+    - vendor
+    - test/fixtures
+  exclude-files:
+    - ".*_test.go"
   exclude-rules:
     - path: _test\.go
       linters:
