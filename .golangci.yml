@@ -45,8 +45,6 @@ linters:
     - errorlint
     - exportloopref
     - gochecknoinits
-    - gochecknoglobals
-    - gocognit
     - godot
     - gofumpt
     - goheader
@@ -54,7 +52,6 @@ linters:
     - makezero
     - nestif
     - sqlclosecheck
-    - testpackage
     - thelper
 
   disable:

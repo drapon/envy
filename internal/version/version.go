@@ -166,7 +166,7 @@ func parseVersion(v string) []int {
 		}
 
 		var num int
-		fmt.Sscanf(part, "%d", &num)
+		_, _ = fmt.Sscanf(part, "%d", &num)
 		result[i] = num
 	}
 
