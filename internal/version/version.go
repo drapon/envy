@@ -152,9 +152,13 @@ func Compare(v1, v2 string) int {
 // parseVersion parses a version string into major, minor, patch
 func parseVersion(v string) []int {
 	parts := strings.Split(v, ".")
-	result := make([]int, 0, 3)
+	result := make([]int, 3)
 	
-	for _, part := range parts {
+	for i, part := range parts {
+		if i >= 3 {
+			break
+		}
+		
 		// Remove any pre-release suffix
 		if idx := strings.IndexAny(part, "-+"); idx >= 0 {
 			part = part[:idx]
@@ -162,7 +166,7 @@ func parseVersion(v string) []int {
 		
 		var num int
 		fmt.Sscanf(part, "%d", &num)
-		result = append(result, num)
+		result[i] = num
 	}
 	
 	return result

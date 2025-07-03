@@ -2,95 +2,70 @@ run:
   timeout: 5m
   issues-exit-code: 1
   tests: true
-  skip-dirs:
+  exclude-dirs:
     - vendor
     - test/fixtures
-  skip-files:
+  exclude-files:
     - ".*_test.go"
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
 linters:
+  enable-all: false
   enable:
     - bodyclose
-    - deadcode
-    - depguard
     - dogsled
     - dupl
     - errcheck
     - exhaustive
-    - funlen
-    - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
     - gofmt
     - goimports
-    - golint
-    - gomnd
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
     - noctx
     - nolintlint
-    - rowserrcheck
-    - scopelint
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
     - prealloc
     - predeclared
     - asciicheck
     - errorlint
-    - exhaustivestruct
     - exportloopref
+    - gochecknoinits
     - gochecknoglobals
     - gocognit
     - godot
-    - godox
-    - goerr113
     - gofumpt
     - goheader
     - gomodguard
     - makezero
     - nestif
-    - nlreturn
-    - nolintlint
-    - paralleltest
     - sqlclosecheck
     - testpackage
     - thelper
-    - tparallel
-    - wrapcheck
-    - wsl
 
   disable:
     - maligned
-    - interfacer
-    - scopelint
-    - golint
-    - structcheck
-    - deadcode
-    - varcheck
-    - exhaustivestruct
     - wsl
     - nlreturn
-    - gomnd
     - goerr113
     - wrapcheck
     - testpackage
@@ -98,25 +73,12 @@ linters:
     - tparallel
     - godox
     - funlen
+    - gocognit
+    - gochecknoglobals
 
 linters-settings:
-  depguard:
-    list-type: blacklist
-    include-go-root: false
-    packages:
-      - github.com/sirupsen/logrus
-    packages-with-error-message:
-      - github.com/sirupsen/logrus: "logging is allowed only by zap"
-
   dupl:
     threshold: 100
-
-  funlen:
-    lines: 100
-    statements: 50
-
-  gci:
-    local-prefixes: github.com/drapon/envy
 
   goconst:
     min-len: 2
@@ -146,16 +108,10 @@ linters-settings:
   goimports:
     local-prefixes: github.com/drapon/envy
 
-  golint:
-    min-confidence: 0
-
-  gomnd:
-    settings:
-      mnd:
-        checks: argument,case,condition,return
-
   govet:
-    check-shadowing: true
+    enable-all: true
+    disable:
+      - shadow
     settings:
       printf:
         funcs:
@@ -171,13 +127,9 @@ linters-settings:
     locale: US
 
   nolintlint:
-    allow-leading-space: true
     allow-unused: false
     require-explanation: false
     require-specific: false
-
-  gocognit:
-    min-complexity: 20
 
   nestif:
     min-complexity: 4
@@ -204,8 +156,6 @@ issues:
         - dupl
         - gosec
         - goconst
-        - gocognit
-        - scopelint
         - goerr113
         - noctx
         - forcetypeassert
@@ -235,6 +185,3 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   new: false
-
-service:
-  golangci-lint-version: 1.45.x

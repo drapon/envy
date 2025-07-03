@@ -59,17 +59,18 @@ jobs:
             echo "::notice::Coverage $COVERAGE% meets threshold"
           fi
 
-      - name: Create coverage badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: cicirello/jacoco-badge-generator@v2
-        with:
-          badges-directory: .github/badges
-          generate-coverage-badge: true
-          coverage-badge-filename: coverage.svg
-          coverage-label: Coverage
-          coverage-percentage: ${{ steps.coverage.outputs.percentage }}
-          colors: "#4c1 #97ca00 #a4a61d #dfb317 #fe7d37 #e05d44"
-          intervals: "100 90 80 70 60 0"
+      # TODO: バッジ生成を設定する場合は、以下のコメントを解除してGIST_SECRETとgistIDを設定してください
+      # - name: Create coverage badge
+      #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      #   uses: schneegans/dynamic-badges-action@v1.7.0
+      #   with:
+      #     auth: ${{ secrets.GIST_SECRET }}
+      #     gistID: YOUR_GIST_ID_HERE
+      #     filename: envy-coverage.json
+      #     label: Coverage
+      #     message: ${{ steps.coverage.outputs.percentage }}%
+      #     color: ${{ steps.coverage.outputs.percentage >= 90 && 'brightgreen' || steps.coverage.outputs.percentage >= 80 && 'green' || steps.coverage.outputs.percentage >= 70 && 'yellow' || steps.coverage.outputs.percentage >= 60 && 'orange' || 'red' }}
+      #     style: flat-square
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
