@@ -1,6 +1,6 @@
 # Use multi-stage build to minimize binary size
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git ca-certificates tzdata
@@ -64,7 +64,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # =============================================================================
 # Development image (optional)
 # =============================================================================
-FROM golang:1.22-alpine AS development
+FROM golang:1.23-alpine AS development
 
 # Install development tools
 RUN apk add --no-cache \
