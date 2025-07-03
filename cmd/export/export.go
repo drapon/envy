@@ -10,13 +10,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
+
 	"github.com/drapon/envy/cmd/root"
 	"github.com/drapon/envy/internal/aws"
 	"github.com/drapon/envy/internal/config"
 	"github.com/drapon/envy/internal/env"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 var (
