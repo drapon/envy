@@ -1,0 +1,123 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Run tests with coverage
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -html=coverage.out -o coverage.html
+          go tool cover -func=coverage.out -o coverage.txt
+
+      - name: Calculate coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
+
+      - name: Check coverage threshold
+        run: |
+          THRESHOLD=80
+          COVERAGE=${{ steps.coverage.outputs.percentage }}
+          echo "Coverage: $COVERAGE%"
+          echo "Threshold: $THRESHOLD%"
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "::error::Coverage $COVERAGE% is below threshold $THRESHOLD%"
+            exit 1
+          else
+            echo "::notice::Coverage $COVERAGE% meets threshold"
+          fi
+
+      - name: Create coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          badges-directory: .github/badges
+          generate-coverage-badge: true
+          coverage-badge-filename: coverage.svg
+          coverage-label: Coverage
+          coverage-percentage: ${{ steps.coverage.outputs.percentage }}
+          colors: "#4c1 #97ca00 #a4a61d #dfb317 #fe7d37 #e05d44"
+          intervals: "100 90 80 70 60 0"
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.out
+            coverage.html
+            coverage.txt
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-coverage
+          fail_ci_if_error: true
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = '${{ steps.coverage.outputs.percentage }}';
+            const threshold = 80;
+            const status = parseFloat(coverage) >= threshold ? '✅' : '❌';
+
+            const comment = `## Test Coverage Report ${status}
+
+            **Coverage:** ${coverage}%
+            **Threshold:** ${threshold}%
+
+            ${parseFloat(coverage) >= threshold 
+              ? 'Coverage meets the required threshold! 🎉' 
+              : 'Coverage is below the required threshold. Please add more tests.'}
+
+            <details>
+            <summary>Coverage Details</summary>
+
+            \`\`\`
+            ${{ steps.coverage.outputs.report }}
+            \`\`\`
+
+            </details>`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

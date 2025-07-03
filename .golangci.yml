@@ -1,0 +1,240 @@
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  skip-dirs:
+    - vendor
+    - test/fixtures
+  skip-files:
+    - ".*_test.go"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - exhaustive
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - prealloc
+    - predeclared
+    - asciicheck
+    - errorlint
+    - exhaustivestruct
+    - exportloopref
+    - gochecknoglobals
+    - gocognit
+    - godot
+    - godox
+    - goerr113
+    - gofumpt
+    - goheader
+    - gomodguard
+    - makezero
+    - nestif
+    - nlreturn
+    - nolintlint
+    - paralleltest
+    - sqlclosecheck
+    - testpackage
+    - thelper
+    - tparallel
+    - wrapcheck
+    - wsl
+
+  disable:
+    - maligned
+    - interfacer
+    - scopelint
+    - golint
+    - structcheck
+    - deadcode
+    - varcheck
+    - exhaustivestruct
+    - wsl
+    - nlreturn
+    - gomnd
+    - goerr113
+    - wrapcheck
+    - testpackage
+    - paralleltest
+    - tparallel
+    - godox
+    - funlen
+
+linters-settings:
+  depguard:
+    list-type: blacklist
+    include-go-root: false
+    packages:
+      - github.com/sirupsen/logrus
+    packages-with-error-message:
+      - github.com/sirupsen/logrus: "logging is allowed only by zap"
+
+  dupl:
+    threshold: 100
+
+  funlen:
+    lines: 100
+    statements: 50
+
+  gci:
+    local-prefixes: github.com/drapon/envy
+
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+      - importShadow
+      - unnamedResult
+      - unnecessaryBlock
+      - unnecessaryDefer
+
+  gocyclo:
+    min-complexity: 15
+
+  goimports:
+    local-prefixes: github.com/drapon/envy
+
+  golint:
+    min-confidence: 0
+
+  gomnd:
+    settings:
+      mnd:
+        checks: argument,case,condition,return
+
+  govet:
+    check-shadowing: true
+    settings:
+      printf:
+        funcs:
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+
+  lll:
+    line-length: 140
+
+  misspell:
+    locale: US
+
+  nolintlint:
+    allow-leading-space: true
+    allow-unused: false
+    require-explanation: false
+    require-specific: false
+
+  gocognit:
+    min-complexity: 20
+
+  nestif:
+    min-complexity: 4
+
+  gomodguard:
+    allowed:
+      modules: []
+      domains: []
+    blocked:
+      modules:
+        - github.com/uudashr/go-module:
+            recommendations:
+              - golang.org/x/mod
+            reason: "See https://github.com/uudashr/go-module/issues/3"
+      versions: []
+      local_replace_directives: false
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - goconst
+        - gocognit
+        - scopelint
+        - goerr113
+        - noctx
+        - forcetypeassert
+        - errorlint
+
+    - path: internal/
+      linters:
+        - dupl
+      text: "at least one file in a package should have a package comment"
+
+    - path: cmd/
+      linters:
+        - gochecknoinits
+        - gochecknoglobals
+        - goerr113
+        - wrapcheck
+
+    - path: main\.go
+      linters:
+        - gochecknoinits
+        - gochecknoglobals
+        - goerr113
+        - wrapcheck
+        - nlreturn
+
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+
+service:
+  golangci-lint-version: 1.45.x

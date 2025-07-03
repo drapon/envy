@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  envy-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+    ports:
+      - "2345:2345" # Delve debugger
+    command: air -c .air.toml
+    networks:
+      - envy-network
+
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=ssm,secretsmanager,kms
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=local
+      - KINESIS_ERROR_PROBABILITY=0.0
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "./tmp/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - envy-network
+
+volumes:
+  go-mod-cache:
+
+networks:
+  envy-network:
+    driver: bridge

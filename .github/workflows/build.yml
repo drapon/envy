@@ -1,0 +1,95 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Linux builds
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: 386
+          - goos: linux
+            goarch: arm
+            goarm: 7
+
+          # macOS builds
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+          # Windows builds
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: 386
+          - goos: windows
+            goarch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+        run: |
+          output_name="envy-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            output_name="${output_name}.exe"
+          fi
+          if [ -n "${{ matrix.goarm }}" ]; then
+            output_name="envy-${{ matrix.goos }}-${{ matrix.goarch }}v${{ matrix.goarm }}"
+          fi
+          go build -v -ldflags="-s -w" -o "dist/${output_name}" ./cmd/envy
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: envy-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}
+          path: dist/*
+          retention-days: 7
+
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: envy:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

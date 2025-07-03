@@ -1,0 +1,59 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-imports
+      - id: go-cyclo
+        args: [-over=15]
+      - id: go-mod-tidy
+      - id: go-unit-tests
+      - id: golangci-lint
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v2.42.1
+    hooks:
+      - id: commitizen
+
+  - repo: https://github.com/gitguardian/ggshield
+    rev: v1.20.0
+    hooks:
+      - id: ggshield
+        language: python
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: go-no-replacement
+        name: Check for go.mod replace directives
+        entry: bash -c 'grep -n "^replace" go.mod && exit 1 || exit 0'
+        language: system
+        files: go.mod
+
+      - id: go-generate
+        name: Check go generate
+        entry: bash -c 'go generate ./... && git diff --exit-code'
+        language: system
+        pass_filenames: false
+
+      - id: check-env-example
+        name: Check .env.example is up to date
+        entry: bash -c 'test -f .env && test -f .env.example && diff <(grep -v "^#" .env | cut -d= -f1 | sort) <(grep -v "^#" .env.example | cut -d= -f1 | sort) || true'
+        language: system
+        pass_filenames: false

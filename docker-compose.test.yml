@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: envy-localstack
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      # AWS services to enable
+      - SERVICES=ssm,secretsmanager,kms
+      # Default region
+      - DEFAULT_REGION=us-east-1
+      # Debug level
+      - DEBUG=0
+      # Disable data persistence (for testing)
+      - PERSISTENCE=0
+      # Disable LocalStack dashboard
+      - DISABLE_EVENTS=1
+      # Edge port (common for all services)
+      - EDGE_PORT=4566
+      # Hostname
+      - HOSTNAME_EXTERNAL=localhost
+      # Docker socket mount not required
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      # Lambda execution environment (not needed)
+      - LAMBDA_EXECUTOR=local
+      # KMS provider
+      - KMS_PROVIDER=local
+    volumes:
+      # Docker socket (when using Lambda etc.)
+      # - /var/run/docker.sock:/var/run/docker.sock
+      # Initialization scripts (as needed)
+      - ./test/localstack-init:/docker-entrypoint-initaws.d
+    networks:
+      - envy-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Test runner (optional)
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: envy-test-runner
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      # LocalStack endpoint
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - LOCALSTACK_ENDPOINT=http://localstack:4566
+      # AWS credentials (dummy for LocalStack)
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      # Test settings
+      - ENVY_E2E_TESTS=true
+      - TEST_REAL_AWS=false
+      # Go test settings
+      - GOCACHE=/go-cache
+      - GOMODCACHE=/go-mod-cache
+    volumes:
+      # Source code
+      - .:/workspace
+      # Go cache (for performance)
+      - go-cache:/go-cache
+      - go-mod-cache:/go-mod-cache
+      # Test results
+      - ./test-results:/test-results
+    working_dir: /workspace
+    command: >
+      bash -c "
+        echo 'Waiting for LocalStack to be ready...' &&
+        until curl -f http://localstack:4566/_localstack/health; do
+          echo 'Waiting for LocalStack...'
+          sleep 2
+        done &&
+        echo 'LocalStack is ready!' &&
+        echo 'Running integration tests...' &&
+        go test -v -tags=integration ./test/integration/... -coverprofile=/test-results/integration-coverage.out &&
+        echo 'All tests completed!'
+      "
+    networks:
+      - envy-test
+
+  # AWS CLI for debugging (optional)
+  aws-cli:
+    image: amazon/aws-cli:latest
+    container_name: envy-aws-cli
+    depends_on:
+      - localstack
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    command: --version
+    networks:
+      - envy-test
+    profiles:
+      - debug
+
+networks:
+  envy-test:
+    driver: bridge
+
+volumes:
+  go-cache:
+  go-mod-cache:
+
+# Usage:
+# 1. Start LocalStack only:
+#    docker-compose -f docker-compose.test.yml up localstack
+#
+# 2. Run all tests:
+#    docker-compose -f docker-compose.test.yml up --build test-runner
+#
+# 3. Debug mode (includes AWS CLI):
+#    docker-compose -f docker-compose.test.yml --profile debug up
+#
+# 4. Cleanup:
+#    docker-compose -f docker-compose.test.yml down -v

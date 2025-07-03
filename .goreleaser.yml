@@ -1,0 +1,217 @@
+# GoReleaser configuration file
+# Documentation at http://goreleaser.com
+
+# プロジェクト名
+project_name: envy
+
+# ビルド前の処理
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+# Build configuration
+builds:
+  - id: envy
+    main: ./cmd/envy
+    binary: envy
+
+    # Environment variables
+    env:
+      - CGO_ENABLED=0
+
+    # LDFLAGS configuration
+    ldflags:
+      - -s -w
+      - -X github.com/drapon/envy/internal/version.Version={{.Version}}
+      - -X github.com/drapon/envy/internal/version.Commit={{.Commit}}
+      - -X github.com/drapon/envy/internal/version.Date={{.Date}}
+      - -X github.com/drapon/envy/internal/version.BuiltBy=goreleaser
+
+    # Target OS/Architecture
+    goos:
+      - linux
+      - darwin
+      - windows
+
+    goarch:
+      - amd64
+      - arm64
+
+    # Exclude configuration
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+# Archive configuration
+archives:
+  - id: envy
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+    # Archive format
+    format_overrides:
+      - goos: windows
+        format: zip
+
+    # Files to include in archive
+    files:
+      - LICENSE
+      - README.md
+      - docs/*
+
+# Checksum configuration
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# Snapshot configuration (for development builds)
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+# Changelog configuration
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: "Enhancements"
+      regexp: "^.*chore[(\\w)]*:+.*$"
+      order: 2
+    - title: Others
+      order: 999
+
+# GitHub Releases configuration
+release:
+  github:
+    owner: drapon
+    name: envy
+
+  # Release notes template
+  header: |
+    ## envy {{ .Tag }} ({{ .Date }})
+
+    A new version of envy, the environment variable sync tool, has been released.
+
+  footer: |
+    ## Installation
+
+    ### Homebrew (macOS/Linux)
+    ```bash
+    brew tap drapon/envy
+    brew install envy
+    ```
+
+    ### Binary Download
+    Binaries for each platform can be downloaded below.
+
+    ### Docker
+    ```bash
+    docker pull ghcr.io/drapon/envy:{{ .Tag }}
+    ```
+
+  # Pre-release configuration
+  prerelease: auto
+
+  # Draft configuration
+  draft: false
+
+# Homebrew configuration
+brews:
+  - name: envy
+
+    # Tap repository
+    tap:
+      owner: drapon
+      name: homebrew-envy
+      branch: main
+
+    # Commit configuration
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
+    # Homebrew formula metadata
+    homepage: "https://github.com/drapon/envy"
+    description: "Environment variable sync tool between local files and AWS Parameter Store/Secrets Manager"
+    license: "MIT"
+
+    # Dependencies
+    dependencies:
+      - name: git
+        type: optional
+
+    # Install configuration
+    install: |
+      bin.install "envy"
+      bash_completion.install "completions/envy.bash" => "envy"
+      zsh_completion.install "completions/envy.zsh" => "_envy"
+      fish_completion.install "completions/envy.fish"
+
+    # Test configuration
+    test: |
+      system "#{bin}/envy", "version"
+
+# Docker image configuration
+dockers:
+  - id: envy
+    goos: linux
+    goarch: amd64
+
+    # Image templates
+    image_templates:
+      - "ghcr.io/drapon/envy:{{ .Tag }}"
+      - "ghcr.io/drapon/envy:{{ .Major }}"
+      - "ghcr.io/drapon/envy:{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/drapon/envy:latest"
+
+    # Dockerfile
+    dockerfile: Dockerfile
+
+    # Build arguments
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--platform=linux/amd64"
+
+# Signing configuration
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-signature=${signature}"
+      - "--output-certificate=${certificate}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+# SBOM generation configuration
+sboms:
+  - artifacts: archive
+    documents:
+      - "${artifact}.spdx.sbom.json"

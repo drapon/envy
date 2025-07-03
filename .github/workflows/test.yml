@@ -1,0 +1,84 @@
+name: Test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ["1.20", "1.21", "1.22"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+            %LocalAppData%\go-build
+          key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go }}-
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Run unit tests
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Generate coverage report
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+          go tool cover -func=coverage.out | tee coverage.txt
+          echo "COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')" >> $GITHUB_ENV
+
+      - name: Check coverage threshold
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
+        run: |
+          THRESHOLD=80
+          echo "Coverage: $COVERAGE%"
+          echo "Threshold: $THRESHOLD%"
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "Coverage $COVERAGE% is below threshold $THRESHOLD%"
+            exit 1
+          else
+            echo "Coverage $COVERAGE% meets threshold"
+          fi
+
+      - name: Run integration tests
+        run: go test -v -race -tags=integration ./...
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload coverage artifacts
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.out
+            coverage.html
+            coverage.txt
