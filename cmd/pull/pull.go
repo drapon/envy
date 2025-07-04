@@ -237,7 +237,7 @@ func fileExists(filename string) bool {
 func createBackupFilename(original string) string {
 	ext := filepath.Ext(original)
 	base := strings.TrimSuffix(original, ext)
-	timestamp := time.Now().Format("20060102_150405")
+	timestamp := time.Now().Format("20060102_150405.000")
 	return fmt.Sprintf("%s.backup_%s%s", base, timestamp, ext)
 }
 

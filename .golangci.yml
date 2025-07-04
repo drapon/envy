@@ -43,7 +43,7 @@ linters:
     - predeclared
     - asciicheck
     - errorlint
-    - exportloopref
+    - copyloopvar
     - gochecknoinits
     - godot
     - gofumpt
@@ -55,10 +55,9 @@ linters:
     - thelper
 
   disable:
-    - maligned
     - wsl
     - nlreturn
-    - goerr113
+    - err113
     - wrapcheck
     - testpackage
     - paralleltest

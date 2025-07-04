@@ -35,7 +35,8 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go test -v -race -coverprofile=coverage.out -covermode=atomic -timeout 5m \
+            ./cmd/... ./internal/... ./pkg/... ./test/...
           go tool cover -html=coverage.out -o coverage.html
           go tool cover -func=coverage.out -o coverage.txt
 
@@ -74,6 +75,7 @@ jobs:
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
+        if: ${{ !github.event.act }}
         with:
           name: coverage-reports
           path: |
@@ -83,6 +85,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        if: ${{ !github.event.act }}
         with:
           file: ./coverage.out
           flags: unittests

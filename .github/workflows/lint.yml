@@ -49,5 +49,5 @@ jobs:
 
       - name: Run go mod tidy
         run: |
-          go mod tidy
+          go mod tidy -compat=1.23
           git diff --exit-code go.mod go.sum

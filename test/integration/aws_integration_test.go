@@ -34,7 +34,9 @@ func (suite *AWSIntegrationTestSuite) SetupSuite() {
 	
 	// Check if LocalStack is running
 	suite.helper = NewLocalStackHelper()
-	require.True(suite.T(), suite.helper.IsRunning(), "LocalStack is not running. Please start LocalStack before running integration tests.")
+	if !suite.helper.IsRunning() {
+		suite.T().Skip("LocalStack is not running. Skipping integration tests.")
+	}
 	
 	// Test configuration
 	cfg := &config.Config{

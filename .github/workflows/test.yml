@@ -13,11 +13,27 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        go: ["1.20", "1.21", "1.22"]
+        go: ["1.20", "1.21", "1.22", "1.23"]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Free Disk Space (Ubuntu)
+        if: runner.os == 'Linux'
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -29,9 +45,6 @@ jobs:
         with:
           path: |
             ~/go/pkg/mod
-            ~/.cache/go-build
-            ~/Library/Caches/go-build
-            %LocalAppData%\go-build
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go }}-
@@ -40,7 +53,17 @@ jobs:
         run: go mod download
 
       - name: Run unit tests
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        run: |
+          echo "Running unit tests with timeout..."
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ] && [ "${{ matrix.go }}" = "1.22" ]; then
+            # Run with race detector only for coverage report
+            go test -v -short -race -coverprofile=coverage.out -covermode=atomic -timeout 5m \
+              ./cmd/... ./internal/... ./pkg/... ./test/...
+          else
+            # Run without race detector for other combinations
+            go test -v -short -coverprofile=coverage.out -covermode=atomic -timeout 5m \
+              ./cmd/... ./internal/... ./pkg/... ./test/...
+          fi
 
       - name: Generate coverage report
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
@@ -63,10 +86,13 @@ jobs:
           fi
 
       - name: Run integration tests
-        run: go test -v -race -tags=integration ./...
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          echo "Running integration tests..."
+          go test -v -race -tags=integration -timeout 2m ./test/integration/...
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22' && !github.event.act
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.out
@@ -74,7 +100,7 @@ jobs:
           name: codecov-umbrella
 
       - name: Upload coverage artifacts
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22' && !github.event.act
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

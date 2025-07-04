@@ -108,17 +108,17 @@ func TestCreateBackupFilename(t *testing.T) {
 		{
 			name:     "env_file",
 			original: ".env.prod",
-			pattern:  `\.env\.backup_\d{8}_\d{6}\.prod`,
+			pattern:  `\.env\.backup_\d{8}_\d{6}\.\d{3}\.prod`,
 		},
 		{
 			name:     "no_extension",
 			original: "envfile",
-			pattern:  `envfile\.backup_\d{8}_\d{6}`,
+			pattern:  `envfile\.backup_\d{8}_\d{6}\.\d{3}`,
 		},
 		{
 			name:     "with_path",
 			original: "/path/to/.env.dev",
-			pattern:  `/path/to/\.env\.backup_\d{8}_\d{6}\.dev`,
+			pattern:  `/path/to/\.env\.backup_\d{8}_\d{6}\.\d{3}\.dev`,
 		},
 	}
 
@@ -685,7 +685,7 @@ func TestPullCmd_FileOperations(t *testing.T) {
 
 	t.Run("copy_nonexistent_source", func(t *testing.T) {
 		nonExistentSource := filepath.Join(tempDir, "nonexistent.env")
-		destFile := filepath.Join(tempDir, "dest.env")
+		destFile := filepath.Join(tempDir, "dest_nonexistent.env")
 
 		err := copyFile(nonExistentSource, destFile)
 		assert.Error(t, err)
@@ -696,8 +696,8 @@ func TestPullCmd_FileOperations(t *testing.T) {
 		original := ".env.prod"
 		backup1 := createBackupFilename(original)
 
-		// Wait a moment to ensure different timestamp
-		time.Sleep(1 * time.Millisecond)
+		// Wait a short time to ensure different timestamp (now with milliseconds)
+		time.Sleep(2 * time.Millisecond)
 		backup2 := createBackupFilename(original)
 
 		// Backups should be different due to timestamp

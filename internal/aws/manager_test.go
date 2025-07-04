@@ -33,7 +33,9 @@ func TestNewManager(t *testing.T) {
 		manager, err := NewManager(cfg)
 		assert.Error(t, err)
 		assert.Nil(t, manager)
-		assert.Contains(t, err.Error(), "failed to create AWS client")
+		if err != nil {
+			assert.Contains(t, err.Error(), "failed to create AWS client")
+		}
 	})
 }
 

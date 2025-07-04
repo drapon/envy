@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/drapon/envy/cmd/root"
 	"github.com/drapon/envy/internal/aws"

@@ -147,6 +147,10 @@ func TestRateLimiter(t *testing.T) {
 
 // TestRateLimitedBatchProcessor tests rate-limited batch processing
 func TestRateLimitedBatchProcessor(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping rate limit test in short mode")
+	}
+
 	ctx := context.Background()
 
 	processor := NewRateLimitedBatchProcessor(ctx, 2, 5, 3,

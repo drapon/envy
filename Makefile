@@ -55,12 +55,12 @@ clean:
 # Run tests
 test:
 	@echo "Running unit tests..."
-	$(GO) test -v -race ./...
+	$(GO) test -v -race -timeout 5m ./cmd/... ./internal/... ./pkg/... ./test/...
 
 # Run tests with coverage
 test-coverage:
 	@echo "Running tests with coverage..."
-	$(GO) test -v -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
+	$(GO) test -v -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic -timeout 5m ./cmd/... ./internal/... ./pkg/... ./test/...
 	$(GO) tool cover -html=$(COVERAGE_FILE) -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 	@$(GO) tool cover -func=$(COVERAGE_FILE) | grep total | awk '{print "Total coverage: " $$3}'
