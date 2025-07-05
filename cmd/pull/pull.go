@@ -116,7 +116,7 @@ func runPull(cmd *cobra.Command, args []string) error {
 }
 
 func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Manager, envName string, logger *zap.Logger) error {
-	color.PrintInfo("Pulling environment: %s", envName)
+	color.PrintInfof("Pulling environment: %s", envName)
 
 	// Get environment configuration
 	envConfig, err := cfg.GetEnvironment(envName)
@@ -126,7 +126,7 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 	// Pull from AWS with caching
 	if !viper.GetBool("quiet") && !export && !noProgress {
-		color.PrintInfo("Connecting to %s...", getSourceDescription(cfg, envName))
+		color.PrintInfof("Connecting to %s...", getSourceDescription(cfg, envName))
 	}
 
 	envFile, err := pullEnvironmentWithCache(ctx, awsManager, envName, logger)
@@ -136,11 +136,11 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 	variableCount := len(envFile.Keys())
 	if variableCount == 0 {
-		color.PrintWarning("No variables found")
+		color.PrintWarningf("No variables found")
 		return nil
 	}
 
-	color.PrintInfo("Fetched %d variables", variableCount)
+	color.PrintInfof("Fetched %d variables", variableCount)
 
 	// Handle export mode
 	if export {
@@ -160,9 +160,9 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	if merge && fileExists(outputFile) {
 		existingFile, err := env.ParseFile(outputFile)
 		if err != nil {
-			color.PrintWarning("Could not parse existing file for merge: %v", err)
+			color.PrintWarningf("Could not parse existing file for merge: %v", err)
 		} else {
-			color.PrintInfo("Merging with existing %s...", outputFile)
+			color.PrintInfof("Merging with existing %s...", outputFile)
 			existingFile.Merge(envFile)
 			envFile = existingFile
 		}
@@ -171,7 +171,7 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	// Create backup if file exists
 	if backup && !overwrite && fileExists(outputFile) {
 		backupFile := createBackupFilename(outputFile)
-		color.PrintInfo("Creating backup: %s", backupFile)
+		color.PrintInfof("Creating backup: %s", backupFile)
 		if err := copyFile(outputFile, backupFile); err != nil {
 			return fmt.Errorf("failed to create backup: %w", err)
 		}
@@ -179,7 +179,7 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 	// Save to file with progress indication
 	if !viper.GetBool("quiet") && !export {
-		color.PrintInfo("Writing %d variables to %s...", variableCount, outputFile)
+		color.PrintInfof("Writing %d variables to %s...", variableCount, outputFile)
 	}
 
 	// Write the file
@@ -188,23 +188,23 @@ func pullEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	}
 
 	if !viper.GetBool("quiet") && !export {
-		color.PrintSuccess("✓ File written successfully")
+		color.PrintSuccessf("✓ File written successfully")
 	}
 
 	// Set file permissions to 600
 	if err := os.Chmod(outputFile, 0600); err != nil {
-		color.PrintWarning("Could not set file permissions: %v", err)
+		color.PrintWarningf("Could not set file permissions: %v", err)
 	}
 
 	if !viper.GetBool("quiet") {
-		color.PrintSuccess("Successfully pulled %d variables to %s", variableCount, outputFile)
+		color.PrintSuccessf("Successfully pulled %d variables to %s", variableCount, outputFile)
 	}
 	return nil
 }
 
 func exportVariables(envFile *env.File) error {
-	color.PrintInfo("\n# Export environment variables")
-	color.PrintInfo("# Run: eval $(envy pull --export)")
+	color.PrintInfof("\n# Export environment variables")
+	color.PrintInfof("# Run: eval $(envy pull --export)")
 	fmt.Println()
 
 	for _, key := range envFile.SortedKeys() {

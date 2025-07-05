@@ -1,4 +1,4 @@
-// Package version implements the version command
+// Package version implements the version command.
 package version
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/drapon/envy/internal/version"
 )
 
-// Options holds the command options
+// Options holds the command options.
 type Options struct {
 	Detailed     bool
 	CheckUpdate  bool
@@ -21,7 +21,7 @@ type Options struct {
 	UpdatePrompt bool
 }
 
-// NewCommand creates a new version command
+// NewCommand creates a new version command.
 func NewCommand() *cobra.Command {
 	opts := &Options{}
 
@@ -54,7 +54,7 @@ It can also check for available updates.`,
 	return cmd
 }
 
-// runVersion executes the version command
+// runVersion executes the version command.
 func runVersion(ctx context.Context, opts *Options) error {
 	info := version.GetInfo()
 

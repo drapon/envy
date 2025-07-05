@@ -101,11 +101,13 @@ func (u *Updater) CheckForUpdate(ctx context.Context, currentVersion string) (*R
 	}
 
 	// Cache the result
-	u.saveCache(&UpdateCache{
+	if err := u.saveCache(&UpdateCache{
 		LastCheck:     time.Now(),
 		LatestVersion: release.Version,
 		ReleaseNotes:  release.ReleaseNotes,
-	})
+	}); err != nil {
+		log.Debug("Failed to save update cache", log.ErrorField(err))
+	}
 
 	// Check if newer version is available
 	if version.IsNewer(release.Version, currentVersion) {
@@ -131,7 +133,11 @@ func (u *Updater) fetchLatestRelease(ctx context.Context) (*Release, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Debug("Failed to close response body", log.ErrorField(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -180,7 +186,11 @@ func (u *Updater) DownloadBinary(ctx context.Context, release *Release, destPath
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Debug("Failed to close response body", log.ErrorField(closeErr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download failed with status %d", resp.StatusCode)
@@ -191,14 +201,20 @@ func (u *Updater) DownloadBinary(ctx context.Context, release *Release, destPath
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tempFile.Name())
+	defer func() {
+		if removeErr := os.Remove(tempFile.Name()); removeErr != nil && !os.IsNotExist(removeErr) {
+			log.Debug("Failed to remove temp file", log.ErrorField(removeErr))
+		}
+	}()
 
 	// Download to temporary file
 	if _, err := io.Copy(tempFile, resp.Body); err != nil {
-		tempFile.Close()
+		_ = tempFile.Close()
 		return err
 	}
-	tempFile.Close()
+	if closeErr := tempFile.Close(); closeErr != nil {
+		return fmt.Errorf("failed to close temp file: %w", closeErr)
+	}
 
 	// Make executable
 	if err := os.Chmod(tempFile.Name(), 0755); err != nil {

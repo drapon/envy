@@ -112,7 +112,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		}
 
 		if all {
-			color.PrintBold("=== Environment: %s ===", envName)
+			color.PrintBoldf("=== Environment: %s ===", envName)
 		}
 
 		if err := listEnvironment(ctx, cfg, awsManager, envName); err != nil {
@@ -139,7 +139,7 @@ func listEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 		envManager := env.NewManager(".")
 		envFile, err := envManager.LoadFiles(envConfig.Files)
 		if err != nil {
-			color.PrintWarning("Failed to load local files: %v", err)
+			color.PrintWarningf("Failed to load local files: %v", err)
 			localVars = make(map[string]string)
 		} else {
 			localVars = envFile.ToMap()
@@ -150,7 +150,7 @@ func listEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	if awsManager != nil && (source == "aws" || source == "both") {
 		awsVars, err = awsManager.ListEnvironmentVariables(ctx, envName)
 		if err != nil {
-			color.PrintWarning("Failed to load AWS variables: %v", err)
+			color.PrintWarningf("Failed to load AWS variables: %v", err)
 			awsVars = make(map[string]string)
 		}
 	}
@@ -213,7 +213,7 @@ type varInfo struct {
 
 func displayText(vars map[string]varInfo, envName string) error {
 	if len(vars) == 0 {
-		color.PrintWarning("No variables found")
+		color.PrintWarningf("No variables found")
 		return nil
 	}
 
@@ -226,9 +226,9 @@ func displayText(vars map[string]varInfo, envName string) error {
 
 	// Display header
 	if source == "both" {
-		color.PrintInfo("Environment: %s (showing %s)\n", envName, source)
+		color.PrintInfof("Environment: %s (showing %s)\n", envName, source)
 	} else {
-		color.PrintInfo("Environment: %s (source: %s)\n", envName, source)
+		color.PrintInfof("Environment: %s (source: %s)\n", envName, source)
 	}
 
 	// Display variables
@@ -257,7 +257,7 @@ func displayText(vars map[string]varInfo, envName string) error {
 	}
 
 	// Summary
-	color.PrintBold("\nTotal: %d variables", len(vars))
+	color.PrintBoldf("\nTotal: %d variables", len(vars))
 
 	if source == "both" {
 		localCount := 0
@@ -284,11 +284,11 @@ func displayText(vars map[string]varInfo, envName string) error {
 
 func displayTree(vars map[string]varInfo, envName string) error {
 	if len(vars) == 0 {
-		color.PrintWarning("No variables found")
+		color.PrintWarningf("No variables found")
 		return nil
 	}
 
-	color.PrintInfo("Environment: %s\n", envName)
+	color.PrintInfof("Environment: %s\n", envName)
 
 	// Build tree structure
 	root := &treeNode{
@@ -306,7 +306,7 @@ func displayTree(vars map[string]varInfo, envName string) error {
 	displayTreeNode(root, "", true)
 
 	// Summary
-	color.PrintBold("\nTotal: %d variables", len(vars))
+	color.PrintBoldf("\nTotal: %d variables", len(vars))
 
 	return nil
 }

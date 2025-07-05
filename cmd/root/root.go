@@ -149,6 +149,9 @@ func initConfig() {
 		log.LogConfigLoad("", false, err)
 	}
 
+	// Initialize color system based on flags
+	color.Initialize()
+
 	// Initialize logging system
 	if err := log.InitializeLogger(viper.GetViper()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s %s\n", color.FormatError("Failed to initialize logger:"), err)

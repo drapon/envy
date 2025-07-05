@@ -1,6 +1,8 @@
+// Package prompt provides interactive prompts and menus for user input.
 package prompt
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,7 +12,9 @@ import (
 	"github.com/AlecAivazis/survey/v2/terminal"
 )
 
-// InteractiveSelect shows an interactive selection menu using arrow keys
+const selectIcon = "▶"
+
+// InteractiveSelect shows an interactive selection menu using arrow keys.
 func InteractiveSelect(title string, options []string, defaultIndex int) (int, error) {
 	var selected string
 
@@ -21,14 +25,14 @@ func InteractiveSelect(title string, options []string, defaultIndex int) (int, e
 	}
 
 	err := survey.AskOne(prompt, &selected, survey.WithIcons(func(icons *survey.IconSet) {
-		icons.SelectFocus.Text = "▶"
+		icons.SelectFocus.Text = selectIcon
 		icons.MarkedOption.Text = "✓"
 		icons.UnmarkedOption.Text = " "
 	}))
 
 	if err != nil {
 		// If user cancels, return the default
-		if err == terminal.InterruptErr {
+		if errors.Is(err, terminal.InterruptErr) {
 			return defaultIndex, nil
 		}
 		return -1, err
@@ -44,7 +48,7 @@ func InteractiveSelect(title string, options []string, defaultIndex int) (int, e
 	return defaultIndex, nil
 }
 
-// InteractiveMultiSelect shows a multi-select menu using arrow keys and space to select
+// InteractiveMultiSelect shows a multi-select menu using arrow keys and space to select.
 func InteractiveMultiSelect(title string, options []string, defaults []int) ([]int, error) {
 	defaultOptions := make([]string, len(defaults))
 	for i, idx := range defaults {
@@ -61,7 +65,7 @@ func InteractiveMultiSelect(title string, options []string, defaults []int) ([]i
 	}
 
 	err := survey.AskOne(prompt, &selected, survey.WithIcons(func(icons *survey.IconSet) {
-		icons.SelectFocus.Text = "▶"
+		icons.SelectFocus.Text = selectIcon
 		icons.MarkedOption.Text = "[✓]"
 		icons.UnmarkedOption.Text = "[ ]"
 	}))
@@ -84,7 +88,7 @@ func InteractiveMultiSelect(title string, options []string, defaults []int) ([]i
 	return indices, nil
 }
 
-// InteractiveConfirm shows a yes/no confirmation prompt
+// InteractiveConfirm shows a yes/no confirmation prompt.
 func InteractiveConfirm(message string, defaultYes bool) bool {
 	var result bool
 	prompt := &survey.Confirm{
@@ -100,7 +104,7 @@ func InteractiveConfirm(message string, defaultYes bool) bool {
 	return result
 }
 
-// ClearScreen clears the terminal screen
+// ClearScreen clears the terminal screen.
 func ClearScreen() {
 	var cmd *exec.Cmd
 
@@ -112,10 +116,10 @@ func ClearScreen() {
 	}
 
 	cmd.Stdout = os.Stdout
-	cmd.Run()
+	_ = cmd.Run() // Ignore error as clearing screen is not critical
 }
 
-// ShowProgress shows a progress spinner
+// ShowProgress shows a progress spinner.
 func ShowProgress(message string, work func() error) error {
 	// For now, just print the message and do the work
 	// In the future, we can add a spinner

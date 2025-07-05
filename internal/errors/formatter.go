@@ -178,31 +178,31 @@ func (f *Formatter) getSuggestion(err *EnvyError) string {
 	}
 }
 
-// PrintError prints an error to stderr with formatting
+// PrintError prints an error to stderr with formatting.
 func PrintError(err error) {
 	formatter := NewFormatter(true, false)
-	fmt.Fprintln(color.Error, formatter.Format(err))
+	_, _ = fmt.Fprintln(color.Error, formatter.Format(err))
 }
 
-// PrintErrorVerbose prints an error with verbose information
+// PrintErrorVerbose prints an error with verbose information.
 func PrintErrorVerbose(err error) {
 	formatter := NewFormatter(true, true)
-	fmt.Fprintln(color.Error, formatter.Format(err))
+	_, _ = fmt.Fprintln(color.Error, formatter.Format(err))
 }
 
-// PrintWarning prints a warning message
+// PrintWarning prints a warning message.
 func PrintWarning(message string) {
-	fmt.Fprintln(color.Error, color.YellowString("警告: %s", message))
+	_, _ = fmt.Fprintln(color.Error, color.YellowString("警告: %s", message))
 }
 
-// PrintSuccess prints a success message
-func PrintSuccess(message string) {
-	fmt.Println(color.GreenString("✓ %s", message))
+// PrintSuccess prints a success message.
+func PrintSuccessf(format string, args ...interface{}) {
+	fmt.Println(color.GreenString("✓ "+format, args...))
 }
 
-// PrintInfo prints an info message
-func PrintInfo(message string) {
-	fmt.Println(color.CyanString("ℹ %s", message))
+// PrintInfo prints an info message.
+func PrintInfof(format string, args ...interface{}) {
+	fmt.Println(color.CyanString("ℹ "+format, args...))
 }
 
 // ErrorContext provides additional context for errors

@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// InitializeLogger はenvyアプリケーション用のロガーを初期化します
+// InitializeLogger はenvyアプリケーション用のロガーを初期化します.
 func InitializeLogger(v *viper.Viper) error {
 	// Viperから設定を読み込み
 	config, err := LoadFromViper(v)
@@ -35,7 +35,7 @@ func InitializeLogger(v *viper.Viper) error {
 	return nil
 }
 
-// SetupForCommand はコマンド実行用のロガーをセットアップします
+// SetupForCommand はコマンド実行用のロガーをセットアップします.
 func SetupForCommand(cmd *cobra.Command, v *viper.Viper) error {
 	// Viperから設定を読み込み
 	config, err := LoadFromViper(v)
@@ -62,7 +62,7 @@ func SetupForCommand(cmd *cobra.Command, v *viper.Viper) error {
 	return nil
 }
 
-// LogCommandStart はコマンド開始時のログを出力します
+// LogCommandStart はコマンド開始時のログを出力します.
 func LogCommandStart(cmd *cobra.Command, args []string, startTime time.Time) {
 	fields := []zap.Field{
 		Field("command", cmd.Name()),
@@ -82,7 +82,7 @@ func LogCommandStart(cmd *cobra.Command, args []string, startTime time.Time) {
 	Info("コマンドを開始しました", fields...)
 }
 
-// LogCommandEnd はコマンド終了時のログを出力します
+// LogCommandEnd はコマンド終了時のログを出力します.
 func LogCommandEnd(cmd *cobra.Command, startTime time.Time, err error) {
 	duration := time.Since(startTime)
 
@@ -99,27 +99,31 @@ func LogCommandEnd(cmd *cobra.Command, startTime time.Time, err error) {
 	}
 }
 
-// LogAWSOperation はAWS操作のログを出力します
-func LogAWSOperation(operation string, service string, fields ...zap.Field) {
+// LogAWSOperation はAWS操作のログを出力します.
+func LogAWSOperation(operation, service string, fields ...zap.Field) {
 	baseFields := []zap.Field{
 		Field("operation", operation),
 		Field("service", service),
 		Field("timestamp", time.Now()),
 	}
 
-	allFields := append(baseFields, fields...)
+	allFields := make([]zap.Field, 0, len(baseFields)+len(fields))
+	allFields = append(allFields, baseFields...)
+	allFields = append(allFields, fields...)
 	Info("AWS操作を実行します", allFields...)
 }
 
-// LogAWSOperationResult はAWS操作結果のログを出力します
-func LogAWSOperationResult(operation string, service string, duration time.Duration, err error, fields ...zap.Field) {
+// LogAWSOperationResult はAWS操作結果のログを出力します.
+func LogAWSOperationResult(operation, service string, duration time.Duration, err error, fields ...zap.Field) {
 	baseFields := []zap.Field{
 		Field("operation", operation),
 		Field("service", service),
 		Duration("duration", duration),
 	}
 
-	allFields := append(baseFields, fields...)
+	allFields := make([]zap.Field, 0, len(baseFields)+len(fields))
+	allFields = append(allFields, baseFields...)
+	allFields = append(allFields, fields...)
 
 	if err != nil {
 		allFields = append(allFields, ErrorField(err))
@@ -129,8 +133,8 @@ func LogAWSOperationResult(operation string, service string, duration time.Durat
 	}
 }
 
-// LogEnvSync は環境変数同期のログを出力します
-func LogEnvSync(action string, source string, destination string, count int, fields ...zap.Field) {
+// LogEnvSync は環境変数同期のログを出力します.
+func LogEnvSync(action, source, destination string, count int, fields ...zap.Field) {
 	baseFields := []zap.Field{
 		Field("action", action),
 		Field("source", source),
@@ -138,11 +142,13 @@ func LogEnvSync(action string, source string, destination string, count int, fie
 		Field("count", count),
 	}
 
-	allFields := append(baseFields, fields...)
+	allFields := make([]zap.Field, 0, len(baseFields)+len(fields))
+	allFields = append(allFields, baseFields...)
+	allFields = append(allFields, fields...)
 	Info("環境変数を同期しました", allFields...)
 }
 
-// LogConfigLoad は設定ファイル読み込みのログを出力します
+// LogConfigLoad は設定ファイル読み込みのログを出力します.
 func LogConfigLoad(configPath string, success bool, err error) {
 	fields := []zap.Field{
 		Field("config_path", configPath),
@@ -158,15 +164,15 @@ func LogConfigLoad(configPath string, success bool, err error) {
 	}
 }
 
-// MaskValue はセンシティブな値をマスクしてログ用のフィールドを作成します
-func MaskValue(key string, value string, config *Config) zap.Field {
+// MaskValue はセンシティブな値をマスクしてログ用のフィールドを作成します.
+func MaskValue(key, value string, config *Config) zap.Field {
 	if config != nil && config.IsSensitiveKey(key) {
 		return Field(key, MaskSensitive(value))
 	}
 	return Field(key, value)
 }
 
-// StructuredError は構造化されたエラー情報を含むログを出力します
+// StructuredError は構造化されたエラー情報を含むログを出力します.
 func StructuredError(msg string, err error, fields ...zap.Field) {
 	allFields := []zap.Field{
 		ErrorField(err),
@@ -182,7 +188,7 @@ func StructuredError(msg string, err error, fields ...zap.Field) {
 	Error(msg, allFields...)
 }
 
-// FlushLogs はバッファされたログをフラッシュします（defer で使用）
+// FlushLogs はバッファされたログをフラッシュします（defer で使用）.
 func FlushLogs() {
 	if err := Sync(); err != nil {
 		// Sync自体のエラーは標準エラー出力に出力
@@ -197,7 +203,7 @@ func FlushLogs() {
 	}
 }
 
-// InitLogger is a simple initialization function for testing
+// InitLogger is a simple initialization function for testing.
 func InitLogger(debug bool, level string) {
 	cfg := DefaultConfig()
 	if debug {
@@ -215,5 +221,5 @@ func InitLogger(debug bool, level string) {
 			cfg.Level = ErrorLevel
 		}
 	}
-	Init(cfg)
+	_ = Init(cfg)
 }

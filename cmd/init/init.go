@@ -73,8 +73,8 @@ func runInit(cmd *cobra.Command, args []string) error {
 	// Detect existing .env files
 	existingEnvFiles := detectEnvFiles()
 	if len(existingEnvFiles) == 0 {
-		color.PrintInfo("No existing .env files found in current directory")
-		color.PrintInfo("Creating default configuration for 'dev' environment")
+		color.PrintInfof("No existing .env files found in current directory")
+		color.PrintInfof("Creating default configuration for 'dev' environment")
 	}
 
 	// Create configuration
@@ -91,7 +91,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	// Configure environments based on existing files
 	if len(existingEnvFiles) > 0 {
-		color.PrintInfo("Found existing .env files: %v", existingEnvFiles)
+		color.PrintInfof("Found existing .env files: %v", existingEnvFiles)
 		for _, envFile := range existingEnvFiles {
 			envNameFromFile := extractEnvName(envFile)
 			cfg.Environments[envNameFromFile] = config.Environment{
@@ -132,23 +132,23 @@ API_KEY=your-api-key-here
 DEBUG=true
 `
 			if err := os.WriteFile(envFile, []byte(content), 0600); err != nil {
-				color.PrintWarning("Failed to create example %s file: %v", envFile, err)
+				color.PrintWarningf("Failed to create example %s file: %v", envFile, err)
 			} else {
-				color.PrintSuccess("Created example %s file", envFile)
+				color.PrintSuccessf("Created example %s file", envFile)
 			}
 		}
 	}
 
-	color.PrintSuccess("Successfully initialized envy project '%s'", projectName)
-	color.PrintSuccess("Created .envyrc configuration file")
-	color.PrintBold("\nNext steps:")
-	color.PrintInfo("1. Edit .envyrc to customize your configuration")
+	color.PrintSuccessf("Successfully initialized envy project '%s'", projectName)
+	color.PrintSuccessf("Created .envyrc configuration file")
+	color.PrintBoldf("\nNext steps:")
+	color.PrintInfof("1. Edit .envyrc to customize your configuration")
 	if len(existingEnvFiles) > 0 {
-		color.PrintInfo("2. Review the detected environment files in .envyrc")
+		color.PrintInfof("2. Review the detected environment files in .envyrc")
 	} else {
-		color.PrintInfo("2. Create or edit .env.%s with your environment variables", envName)
+		color.PrintInfof("2. Create or edit .env.%s with your environment variables", envName)
 	}
-	color.PrintInfo("3. Run 'envy push' to sync variables to AWS")
+	color.PrintInfof("3. Run 'envy push' to sync variables to AWS")
 
 	return nil
 }

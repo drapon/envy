@@ -150,11 +150,11 @@ func Load(configFile string) (*Config, error) {
 	v.AutomaticEnv()
 
 	// Bind environment variables
-	v.BindEnv("project")
-	v.BindEnv("default_environment")
-	v.BindEnv("aws.region")
-	v.BindEnv("aws.profile")
-	v.BindEnv("aws.service")
+	_ = v.BindEnv("project")
+	_ = v.BindEnv("default_environment")
+	_ = v.BindEnv("aws.region")
+	_ = v.BindEnv("aws.profile")
+	_ = v.BindEnv("aws.service")
 
 	// Try to read config file
 	if err := v.ReadInConfig(); err != nil {

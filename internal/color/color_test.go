@@ -30,15 +30,15 @@ func TestColorFormats(t *testing.T) {
 
 func TestPrintFunctions(t *testing.T) {
 	// Test that print functions don't panic
-	PrintSuccess("Test success message")
-	PrintError("Test error message")
-	PrintWarning("Test warning message")
-	PrintInfo("Test info message")
-	PrintBold("Test bold message")
+	PrintSuccessf("Test success message")
+	PrintErrorf("Test error message")
+	PrintWarningf("Test warning message")
+	PrintInfof("Test info message")
+	PrintBoldf("Test bold message")
 
 	// Test with format strings
-	PrintSuccess("Test success with %s", "formatting")
-	PrintError("Test error with number %d", 42)
+	PrintSuccessf("Test success with %s", "formatting")
+	PrintErrorf("Test error with number %d", 42)
 }
 
 func TestColorToggle(t *testing.T) {

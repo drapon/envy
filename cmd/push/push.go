@@ -122,7 +122,7 @@ func runPush(cmd *cobra.Command, args []string) error {
 }
 
 func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Manager, envName string) error {
-	color.PrintInfo("Pushing environment: %s", envName)
+	color.PrintInfof("Pushing environment: %s", envName)
 
 	// Get environment configuration
 	envConfig, err := cfg.GetEnvironment(envName)
@@ -149,7 +149,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 			if value, exists := envFile.Get(varName); exists {
 				filteredFile.Set(varName, value)
 			} else {
-				color.PrintWarning("Variable %s not found in local files", varName)
+				color.PrintWarningf("Variable %s not found in local files", varName)
 			}
 		}
 
@@ -159,7 +159,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	// Check for duplicate keys
 	duplicates := checkDuplicates(envFile)
 	if len(duplicates) > 0 && !allowDuplicate {
-		color.PrintWarning("Duplicate variables found: %v", duplicates)
+		color.PrintWarningf("Duplicate variables found: %v", duplicates)
 		fmt.Println("Use --allow-duplicate to use the last value for duplicates")
 		return fmt.Errorf("duplicate variables found")
 	}
@@ -177,7 +177,7 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 	}
 
 	// Show what will be pushed
-	color.PrintBold("\nVariables to push:")
+	color.PrintBoldf("\nVariables to push:")
 	skippedEmpty := 0
 	for _, key := range envFile.SortedKeys() {
 		value, _ := envFile.Get(key)
@@ -192,15 +192,15 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 		fmt.Printf("  %s = %s\n", key, displayValue)
 	}
 	if skippedEmpty > 0 {
-		color.PrintInfo("\n(%d empty variables will be skipped)", skippedEmpty)
+		color.PrintInfof("\n(%d empty variables will be skipped)", skippedEmpty)
 	}
 
 	// Get current remote variables if showing diff
 	if showDiff && !dryRun {
-		color.PrintInfo("\nFetching current remote values...")
+		color.PrintInfof("\nFetching current remote values...")
 		remoteVars, err := awsManager.ListEnvironmentVariables(ctx, envName)
 		if err != nil {
-			color.PrintWarning("Could not fetch remote values: %v", err)
+			color.PrintWarningf("Could not fetch remote values: %v", err)
 		} else {
 			showDifferences(envFile.ToMap(), remoteVars)
 		}
@@ -208,19 +208,19 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 
 	// Dry run mode
 	if dryRun {
-		color.PrintWarning("\n[DRY RUN] No changes will be made")
-		color.PrintInfo("Would push %d variables to %s", len(envFile.Keys()), getTargetDescription(cfg, envName))
+		color.PrintWarningf("\n[DRY RUN] No changes will be made")
+		color.PrintInfof("Would push %d variables to %s", len(envFile.Keys()), getTargetDescription(cfg, envName))
 		return nil
 	}
 
 	// Confirmation prompt if not forced
 	if !force && !confirmPush(len(envFile.Keys()), envName) {
-		color.PrintWarning("Push cancelled")
+		color.PrintWarningf("Push cancelled")
 		return nil
 	}
 
 	// Push to AWS
-	color.PrintInfo("\nPushing to %s...", getTargetDescription(cfg, envName))
+	color.PrintInfof("\nPushing to %s...", getTargetDescription(cfg, envName))
 
 	if parallelMode {
 		// Use parallel push
@@ -234,12 +234,12 @@ func pushEnvironment(ctx context.Context, cfg *config.Config, awsManager *aws.Ma
 		}
 	}
 
-	color.PrintSuccess("Successfully pushed %d variables to %s", len(envFile.Keys()), envName)
+	color.PrintSuccessf("Successfully pushed %d variables to %s", len(envFile.Keys()), envName)
 	return nil
 }
 
 func showDifferences(local, remote map[string]string) {
-	color.PrintBold("\nDifferences:")
+	color.PrintBoldf("\nDifferences:")
 
 	// Find added variables
 	added := []string{}
@@ -250,7 +250,7 @@ func showDifferences(local, remote map[string]string) {
 	}
 
 	if len(added) > 0 {
-		color.PrintInfo("  Added:")
+		color.PrintInfof("  Added:")
 		for _, key := range added {
 			fmt.Printf("    %s %s\n", color.FormatSuccess("+"), key)
 		}
@@ -265,7 +265,7 @@ func showDifferences(local, remote map[string]string) {
 	}
 
 	if len(modified) > 0 {
-		color.PrintInfo("  Modified:")
+		color.PrintInfof("  Modified:")
 		for _, key := range modified {
 			fmt.Printf("    %s %s\n", color.FormatWarning("~"), key)
 		}
@@ -280,14 +280,14 @@ func showDifferences(local, remote map[string]string) {
 	}
 
 	if len(removed) > 0 {
-		color.PrintInfo("  Will remain in remote (not in local):")
+		color.PrintInfof("  Will remain in remote (not in local):")
 		for _, key := range removed {
 			fmt.Printf("    %s %s\n", color.FormatInfo("?"), key)
 		}
 	}
 
 	if len(added) == 0 && len(modified) == 0 {
-		color.PrintInfo("  No changes detected")
+		color.PrintInfof("  No changes detected")
 	}
 }
 

@@ -201,20 +201,20 @@ func applyFixes(envFile *env.File, fixes []validator.Fix) []validator.Fix {
 }
 
 func outputText(result *validator.ValidationResult, envName string) {
-	color.PrintInfo("Validating environment: %s\n", envName)
+	color.PrintInfof("Validating environment: %s\n", envName)
 
 	// Summary
 	errorCount := len(result.Errors)
 	warningCount := len(result.Warnings)
 
 	if errorCount == 0 && warningCount == 0 {
-		color.PrintSuccess("✅ All validation checks passed!")
+		color.PrintSuccessf("✅ All validation checks passed!")
 		return
 	}
 
 	// Display errors
 	if errorCount > 0 {
-		color.PrintError("❌ Errors (%d):", errorCount)
+		color.PrintErrorf("❌ Errors (%d):", errorCount)
 		for _, err := range result.Errors {
 			fmt.Printf("  - %s\n", color.FormatError(err.Message))
 			if err.Details != "" {
@@ -226,7 +226,7 @@ func outputText(result *validator.ValidationResult, envName string) {
 
 	// Display warnings
 	if warningCount > 0 {
-		color.PrintWarning("⚠️  Warnings (%d):", warningCount)
+		color.PrintWarningf("⚠️  Warnings (%d):", warningCount)
 		for _, warn := range result.Warnings {
 			fmt.Printf("  - %s\n", color.FormatWarning(warn.Message))
 			if warn.Details != "" {
@@ -238,17 +238,17 @@ func outputText(result *validator.ValidationResult, envName string) {
 
 	// Display available fixes
 	if len(result.Fixes) > 0 && !fix {
-		color.PrintInfo("💡 Available fixes (%d):", len(result.Fixes))
+		color.PrintInfof("💡 Available fixes (%d):", len(result.Fixes))
 		for _, f := range result.Fixes {
 			fmt.Printf("  - %s: %s\n", f.Variable, f.Description)
 		}
-		color.PrintInfo("\nRun with --fix to apply these fixes automatically.")
+		color.PrintInfof("\nRun with --fix to apply these fixes automatically.")
 		fmt.Println()
 	}
 
 	// Display applied fixes
 	if len(result.AppliedFixes) > 0 {
-		color.PrintSuccess("✨ Applied fixes (%d):", len(result.AppliedFixes))
+		color.PrintSuccessf("✨ Applied fixes (%d):", len(result.AppliedFixes))
 		for _, f := range result.AppliedFixes {
 			fmt.Printf("  - %s: %s\n", f.Variable, f.Description)
 		}
@@ -266,11 +266,11 @@ func outputText(result *validator.ValidationResult, envName string) {
 	}
 
 	if errorCount == 0 && warningCount == 0 {
-		color.PrintSuccess("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
+		color.PrintSuccessf("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
 	} else if errorCount > 0 {
-		color.PrintError("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
+		color.PrintErrorf("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
 	} else {
-		color.PrintWarning("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
+		color.PrintWarningf("Validation %s: %d errors, %d warnings", status, errorCount, warningCount)
 	}
 }
 

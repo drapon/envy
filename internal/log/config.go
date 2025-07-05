@@ -10,7 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config はログシステムの設定を保持します
+// Constants for log configuration.
+const (
+	OutputFile = "file"
+	FormatJSON = "json"
+)
+
+// Config はログシステムの設定を保持します.
 type Config struct {
 	// Level ログレベル (debug, info, warn, error)
 	Level LogLevel `mapstructure:"level"`
@@ -49,7 +55,7 @@ type Config struct {
 	SensitiveKeys []string `mapstructure:"sensitive_keys"`
 }
 
-// DefaultConfig はデフォルトのログ設定を返します
+// DefaultConfig はデフォルトのログ設定を返します.
 func DefaultConfig() *Config {
 	return &Config{
 		Level:            InfoLevel,
@@ -74,7 +80,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-// DevelopmentConfig は開発環境用のログ設定を返します
+// DevelopmentConfig は開発環境用のログ設定を返します.
 func DevelopmentConfig() *Config {
 	config := DefaultConfig()
 	config.Level = DebugLevel
@@ -84,18 +90,18 @@ func DevelopmentConfig() *Config {
 	return config
 }
 
-// ProductionConfig は本番環境用のログ設定を返します
+// ProductionConfig は本番環境用のログ設定を返します.
 func ProductionConfig() *Config {
 	config := DefaultConfig()
 	config.Level = InfoLevel
-	config.Format = "json"
+	config.Format = FormatJSON
 	config.Development = false
 	config.EnableCaller = false
 	config.EnableStacktrace = false
 	return config
 }
 
-// LoadFromViper はViperから設定を読み込みます
+// LoadFromViper はViperから設定を読み込みます.
 func LoadFromViper(v *viper.Viper) (*Config, error) {
 	config := DefaultConfig()
 
@@ -144,7 +150,7 @@ func LoadFromViper(v *viper.Viper) (*Config, error) {
 	return config, nil
 }
 
-// Validate は設定の妥当性を検証します
+// Validate は設定の妥当性を検証します.
 func (c *Config) Validate() error {
 	// ログレベルの検証
 	validLevels := map[LogLevel]bool{
@@ -159,7 +165,7 @@ func (c *Config) Validate() error {
 
 	// フォーマットの検証
 	validFormats := map[string]bool{
-		"json":    true,
+		FormatJSON: true,
 		"console": true,
 	}
 	if !validFormats[c.Format] {
@@ -169,7 +175,7 @@ func (c *Config) Validate() error {
 	// 出力先の検証
 	validOutputs := map[string]bool{
 		"stdout": true,
-		"file":   true,
+		OutputFile: true,
 		"syslog": true,
 	}
 	if !validOutputs[c.Output] {
@@ -177,7 +183,7 @@ func (c *Config) Validate() error {
 	}
 
 	// ファイル出力の場合のパス検証
-	if c.Output == "file" && c.FilePath == "" {
+	if c.Output == OutputFile && c.FilePath == "" {
 		// デフォルトパスを設定
 		c.FilePath = filepath.Join(".", "envy.log")
 	}
@@ -185,7 +191,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// GetLogFilePath は実際のログファイルパスを返します
+// GetLogFilePath は実際のログファイルパスを返します.
 func (c *Config) GetLogFilePath() string {
 	if c.FilePath == "" {
 		return "envy.log"

@@ -7,14 +7,14 @@ import (
 	"github.com/c-bata/go-prompt"
 )
 
-// MenuOption represents a menu option
+// MenuOption represents a menu option.
 type MenuOption struct {
 	Label       string
 	Value       string
 	Description string
 }
 
-// SelectMenu shows an interactive menu and returns the selected value
+// SelectMenu shows an interactive menu and returns the selected value.
 func SelectMenu(title string, options []MenuOption) string {
 	fmt.Println(title)
 
@@ -63,7 +63,7 @@ func SelectMenu(title string, options []MenuOption) string {
 	// Try to match by label (case insensitive)
 	resultLower := strings.ToLower(strings.TrimSpace(result))
 	for _, opt := range options {
-		if strings.ToLower(opt.Label) == resultLower {
+		if strings.EqualFold(opt.Label, resultLower) {
 			return opt.Value
 		}
 	}
@@ -77,7 +77,7 @@ func SelectMenu(title string, options []MenuOption) string {
 	return ""
 }
 
-// SimpleMenu shows a simple text-based menu without dependencies
+// SimpleMenu shows a simple text-based menu without dependencies.
 func SimpleMenu(title string, options []MenuOption) string {
 	fmt.Println(title)
 	fmt.Println()
@@ -95,7 +95,7 @@ func SimpleMenu(title string, options []MenuOption) string {
 	fmt.Printf("Select option (1-%d): ", len(options))
 
 	var response string
-	fmt.Scanln(&response)
+	_, _ = fmt.Scanln(&response) // Ignore error as we handle empty response
 	response = strings.TrimSpace(response)
 
 	// Try to parse as number

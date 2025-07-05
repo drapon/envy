@@ -64,14 +64,14 @@ func NewProgressTracker(total int, description string, showDetails bool) *Progre
 // Increment increments the progress
 func (p *ProgressTracker) Increment() {
 	p.completed.Add(1)
-	p.bar.Add(1)
+	_ = p.bar.Add(1)
 }
 
 // IncrementWithError increments progress and marks as failed
 func (p *ProgressTracker) IncrementWithError(err error) {
 	p.failed.Add(1)
 	p.completed.Add(1)
-	p.bar.Add(1)
+	_ = p.bar.Add(1)
 
 	if p.showDetails {
 		p.mu.Lock()

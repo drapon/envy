@@ -7,14 +7,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Rules represents validation rules for environment variables
+// Rules represents validation rules for environment variables.
 type Rules struct {
 	Required  []string                 `yaml:"required"`
 	Variables map[string]*VariableRule `yaml:"variables"`
 	Warnings  []WarningRule            `yaml:"warnings"`
 }
 
-// VariableRule represents validation rules for a single variable
+// VariableRule represents validation rules for a single variable.
 type VariableRule struct {
 	Type     string   `yaml:"type"`
 	Pattern  string   `yaml:"pattern,omitempty"`
@@ -25,13 +25,13 @@ type VariableRule struct {
 	Default  string   `yaml:"default,omitempty"`
 }
 
-// WarningRule represents a warning for deprecated or problematic variables
+// WarningRule represents a warning for deprecated or problematic variables.
 type WarningRule struct {
 	Name    string `yaml:"name"`
 	Message string `yaml:"message"`
 }
 
-// LoadRulesFromFile loads validation rules from a YAML file
+// LoadRulesFromFile loads validation rules from a YAML file.
 func LoadRulesFromFile(filename string) (*Rules, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -63,7 +63,7 @@ func LoadRulesFromFile(filename string) (*Rules, error) {
 	return &rules, nil
 }
 
-// SaveRulesToFile saves validation rules to a YAML file
+// SaveRulesToFile saves validation rules to a YAML file.
 func SaveRulesToFile(rules *Rules, filename string) error {
 	data, err := yaml.Marshal(rules)
 	if err != nil {
@@ -77,7 +77,7 @@ func SaveRulesToFile(rules *Rules, filename string) error {
 	return nil
 }
 
-// DefaultRules returns a set of default validation rules
+// DefaultRules returns a set of default validation rules.
 func DefaultRules() *Rules {
 	return &Rules{
 		Required: []string{
@@ -223,7 +223,7 @@ func DefaultRules() *Rules {
 	}
 }
 
-// MergeRules merges two rule sets, with the second taking precedence
+// MergeRules merges two rule sets, with the second taking precedence.
 func MergeRules(base, override *Rules) *Rules {
 	merged := &Rules{
 		Required:  append([]string{}, base.Required...),
@@ -257,7 +257,7 @@ func MergeRules(base, override *Rules) *Rules {
 	return merged
 }
 
-// GenerateExampleRulesFile generates an example rules file
+// GenerateExampleRulesFile generates an example rules file.
 func GenerateExampleRulesFile(filename string) error {
 	example := &Rules{
 		Required: []string{

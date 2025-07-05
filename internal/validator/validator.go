@@ -1,3 +1,4 @@
+// Package validator provides validation functionality for environment variables.
 package validator
 
 import (
@@ -10,19 +11,19 @@ import (
 	"strings"
 )
 
-// Validator validates environment variables against defined rules
+// Validator validates environment variables against defined rules.
 type Validator struct {
 	rules *Rules
 }
 
-// New creates a new validator with the given rules
+// New creates a new validator with the given rules.
 func New(rules *Rules) *Validator {
 	return &Validator{
 		rules: rules,
 	}
 }
 
-// ValidationResult contains the results of validation
+// ValidationResult contains the results of validation.
 type ValidationResult struct {
 	Errors       []ValidationError `json:"errors"`
 	Warnings     []ValidationError `json:"warnings"`
@@ -30,7 +31,7 @@ type ValidationResult struct {
 	AppliedFixes []Fix             `json:"applied_fixes,omitempty"`
 }
 
-// ValidationError represents a validation error or warning
+// ValidationError represents a validation error or warning.
 type ValidationError struct {
 	Variable string `json:"variable"`
 	Message  string `json:"message"`
@@ -38,7 +39,7 @@ type ValidationError struct {
 	Type     string `json:"type"`
 }
 
-// Fix represents a suggested or applied fix
+// Fix represents a suggested or applied fix.
 type Fix struct {
 	Variable    string  `json:"variable"`
 	Type        FixType `json:"type"`
@@ -46,16 +47,20 @@ type Fix struct {
 	Description string  `json:"description"`
 }
 
-// FixType represents the type of fix
+// FixType represents the type of fix.
 type FixType string
 
 const (
 	FixTypeSetDefault     FixType = "set_default"
 	FixTypeCorrectValue   FixType = "correct_value"
 	FixTypeRemoveVariable FixType = "remove_variable"
+	
+	// Common type names
+	TypeInt   = "int"
+	TypeFloat = "float"
 )
 
-// Validate validates the given environment variables
+// Validate validates the given environment variables.
 func (v *Validator) Validate(ctx context.Context, vars map[string]string) *ValidationResult {
 	result := &ValidationResult{
 		Errors:   []ValidationError{},
@@ -149,7 +154,7 @@ func (v *Validator) Validate(ctx context.Context, vars map[string]string) *Valid
 		}
 
 		// Validate range for numeric types
-		if varRule.Type == "int" || varRule.Type == "float" {
+		if varRule.Type == TypeInt || varRule.Type == TypeFloat {
 			if err := v.validateRange(varName, value, varRule); err != nil {
 				result.Errors = append(result.Errors, ValidationError{
 					Variable: varName,
@@ -195,7 +200,7 @@ func (v *Validator) validateType(name, value string, rule *VariableRule) error {
 		// String is always valid
 		return nil
 
-	case "int":
+	case TypeInt:
 		if _, err := strconv.Atoi(value); err != nil {
 			return fmt.Errorf("variable %s must be an integer", name)
 		}
@@ -261,7 +266,7 @@ func (v *Validator) validateEnum(name, value string, allowed []string) error {
 }
 
 func (v *Validator) validateRange(name, value string, rule *VariableRule) error {
-	if rule.Type == "int" {
+	if rule.Type == TypeInt {
 		val, err := strconv.Atoi(value)
 		if err != nil {
 			return nil // Type validation will catch this
