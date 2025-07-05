@@ -70,11 +70,8 @@ type Environment struct {
 
 // DefaultConfig returns the default configuration
 func DefaultConfig() *Config {
-	// Get current directory name as default project name
+	// Use fixed default project name for consistency
 	projectName := "myapp"
-	if cwd, err := os.Getwd(); err == nil {
-		projectName = filepath.Base(cwd)
-	}
 
 	return &Config{
 		Project:            projectName,
@@ -366,6 +363,11 @@ func (c *Config) GetMemoryThreshold() int64 {
 		return 100 * 1024 * 1024 // Default 100MB
 	}
 	return c.Memory.MemoryThreshold
+}
+
+// GetCacheConfig returns the cache configuration
+func (c *Config) GetCacheConfig() CacheConfig {
+	return c.Cache
 }
 
 // Validate validates the configuration

@@ -92,11 +92,32 @@ func ParseWithContext(ctx context.Context, r io.Reader) (*File, error) {
 			key := matches[1]
 			value := matches[2]
 
-			// Handle inline comments
+			// Handle inline comments (but not inside quotes)
 			var comment string
-			if idx := strings.Index(value, " #"); idx != -1 {
-				comment = strings.TrimSpace(value[idx+2:])
-				value = strings.TrimSpace(value[:idx])
+			// Check if value starts with a quote
+			if strings.HasPrefix(strings.TrimSpace(value), "\"") || strings.HasPrefix(strings.TrimSpace(value), "'") {
+				// If quoted, remove quotes first, then check for comments after the closing quote
+				trimmedValue := strings.TrimSpace(value)
+				if len(trimmedValue) >= 2 {
+					quote := trimmedValue[0]
+					// Find the closing quote
+					closeIdx := strings.LastIndexByte(trimmedValue[1:], quote)
+					if closeIdx != -1 {
+						closeIdx++ // Adjust for the slice offset
+						// Check for comment after the closing quote
+						afterQuote := trimmedValue[closeIdx+1:]
+						if commentIdx := strings.Index(afterQuote, " #"); commentIdx != -1 {
+							comment = strings.TrimSpace(afterQuote[commentIdx+2:])
+							value = trimmedValue[:closeIdx+1]
+						}
+					}
+				}
+			} else {
+				// Not quoted, check for inline comment
+				if idx := strings.Index(value, " #"); idx != -1 {
+					comment = strings.TrimSpace(value[idx+2:])
+					value = strings.TrimSpace(value[:idx])
+				}
 			}
 
 			// Remove quotes if present
@@ -160,6 +181,7 @@ func (f *File) WriteWithContext(ctx context.Context, w io.Writer) error {
 	defer sbPool.Put(sb)
 
 	// Add variables in order
+	currentLine := maxLine + 1
 	for _, key := range f.Order {
 		select {
 		case <-ctx.Done():
@@ -176,9 +198,17 @@ func (f *File) WriteWithContext(ctx context.Context, w io.Writer) error {
 				sb.WriteString(" # ")
 				sb.WriteString(variable.Comment)
 			}
-			lines[variable.Line] = sb.String()
-			if variable.Line > maxLine {
-				maxLine = variable.Line
+			
+			// Use the variable's line number if it has one, otherwise use current line
+			lineNum := variable.Line
+			if lineNum == 0 {
+				lineNum = currentLine
+				currentLine++
+			}
+			
+			lines[lineNum] = sb.String()
+			if lineNum > maxLine {
+				maxLine = lineNum
 			}
 		}
 	}

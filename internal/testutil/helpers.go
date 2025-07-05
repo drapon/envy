@@ -316,6 +316,33 @@ func (m *MockTime) Set(t time.Time) {
 	m.current = t
 }
 
+// CaptureStdout captures stdout to a buffer
+func CaptureStdout(buf *bytes.Buffer) *os.File {
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Start a goroutine to copy data from pipe to buffer
+	done := make(chan struct{})
+	go func() {
+		io.Copy(buf, r)
+		r.Close()
+		close(done)
+	}()
+
+	// Return the original stdout and a cleanup function
+	return oldStdout
+}
+
+// RestoreStdout restores the original stdout
+func RestoreStdout(oldStdout *os.File) {
+	// Close the writer to signal the goroutine to stop
+	if os.Stdout != oldStdout {
+		os.Stdout.Close()
+	}
+	os.Stdout = oldStdout
+}
+
 // CaptureOutput captures stdout and stderr for testing
 func CaptureOutput(t *testing.T, fn func()) (stdout, stderr string) {
 	t.Helper()

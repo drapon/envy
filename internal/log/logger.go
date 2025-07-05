@@ -190,6 +190,21 @@ func Sync() error {
 	return nil
 }
 
+// InitTestLogger initializes a test logger and returns it
+func InitTestLogger() *zap.Logger {
+	cfg := zap.NewDevelopmentConfig()
+	cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	cfg.DisableStacktrace = true
+	cfg.OutputPaths = []string{"stdout"}
+	cfg.ErrorOutputPaths = []string{"stderr"}
+	
+	logger, _ := cfg.Build()
+	globalLogger = logger
+	globalSugar = logger.Sugar()
+	
+	return logger
+}
+
 // MaskSensitive はセンシティブな情報をマスクします
 func MaskSensitive(value string) string {
 	if len(value) <= 4 {

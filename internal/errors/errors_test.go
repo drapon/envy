@@ -66,18 +66,18 @@ func TestEnvyError(t *testing.T) {
 			{
 				name:     "ConfigNotFound",
 				err:      New(ErrConfigNotFound, ""),
-				expected: "設定ファイルが見つかりません。'envy init'コマンドで初期設定を行ってください。",
+				expected: "Configuration file not found. Please run 'envy init' to initialize settings.",
 			},
 			{
 				name: "InvalidEnvironment with details",
 				err: New(ErrInvalidEnvironment, "").
 					WithDetails("environment", "production"),
-				expected: "環境 'production' は存在しません。.envyrcファイルで定義された環境を指定してください。",
+				expected: "Environment 'production' does not exist. Please specify an environment defined in .envyrc file.",
 			},
 			{
 				name:     "AWSRateLimit",
 				err:      New(ErrAWSRateLimit, ""),
-				expected: "AWS APIのレート制限に達しました。しばらく待ってから再試行してください。",
+				expected: "AWS API rate limit reached. Please wait and try again.",
 			},
 		}
 

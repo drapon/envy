@@ -523,6 +523,21 @@ func (cm *CacheManager) InvalidateByPrefix(prefix string) error {
 	return cm.cache.Clear()
 }
 
+// Set はキャッシュに値を設定する
+func (cm *CacheManager) Set(key string, value interface{}, ttl time.Duration) error {
+	return cm.cache.Set(key, value, ttl)
+}
+
+// Get はキャッシュから値を取得する
+func (cm *CacheManager) Get(key string) (interface{}, bool) {
+	value, found, err := cm.cache.Get(key)
+	if err != nil {
+		cm.logger.Error("キャッシュからの取得エラー", zap.Error(err))
+		return nil, false
+	}
+	return value, found
+}
+
 // Stats はキャッシュの統計情報を返す
 func (cm *CacheManager) Stats() *CacheStats {
 	return cm.cache.Stats()

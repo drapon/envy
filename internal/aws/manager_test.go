@@ -34,7 +34,7 @@ func TestNewManager(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, manager)
 		if err != nil {
-			assert.Contains(t, err.Error(), "failed to create AWS client")
+			assert.Contains(t, err.Error(), "AWS region is required")
 		}
 	})
 }

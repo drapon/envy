@@ -24,9 +24,8 @@ ARG BUILD_DATE="unknown"
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s \
     -X github.com/drapon/envy/internal/version.Version=${VERSION} \
-    -X github.com/drapon/envy/internal/version.Commit=${COMMIT} \
-    -X github.com/drapon/envy/internal/version.Date=${BUILD_DATE} \
-    -X github.com/drapon/envy/internal/version.BuiltBy=docker" \
+    -X github.com/drapon/envy/internal/version.GitCommit=${COMMIT} \
+    -X github.com/drapon/envy/internal/version.BuildDate=${BUILD_DATE}" \
     -o envy ./cmd/envy
 
 # Runtime stage

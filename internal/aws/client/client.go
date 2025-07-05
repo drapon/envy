@@ -27,6 +27,11 @@ type Options struct {
 
 // NewClient creates a new AWS client
 func NewClient(ctx context.Context, opts Options) (*Client, error) {
+	// Validate region
+	if opts.Region == "" {
+		return nil, fmt.Errorf("AWS region is required")
+	}
+
 	// Load AWS configuration
 	configOpts := []func(*config.LoadOptions) error{
 		config.WithRegion(opts.Region),

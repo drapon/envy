@@ -196,3 +196,24 @@ func FlushLogs() {
 		}
 	}
 }
+
+// InitLogger is a simple initialization function for testing
+func InitLogger(debug bool, level string) {
+	cfg := DefaultConfig()
+	if debug {
+		cfg.Development = true
+	}
+	if level != "" {
+		switch strings.ToLower(level) {
+		case "debug":
+			cfg.Level = DebugLevel
+		case "info":
+			cfg.Level = InfoLevel
+		case "warn":
+			cfg.Level = WarnLevel
+		case "error":
+			cfg.Level = ErrorLevel
+		}
+	}
+	Init(cfg)
+}

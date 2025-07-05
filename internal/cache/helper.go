@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -62,6 +63,38 @@ func CloseGlobalCache() error {
 		return globalManager.Close()
 	}
 	return nil
+}
+
+// InitializeGlobalCache initializes the global cache with config
+func InitializeGlobalCache(cfg interface{}) error {
+	var config *CacheConfig
+
+	// Use reflection to check for Cache field
+	if v := reflect.ValueOf(cfg); v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
+		if cacheField := v.Elem().FieldByName("Cache"); cacheField.IsValid() {
+			if cacheConfig, ok := cacheField.Interface().(CacheConfig); ok {
+				config = &cacheConfig
+			}
+		}
+	}
+
+	if config == nil {
+		// Use default config
+		config = DefaultCacheConfig()
+	}
+
+	manager, err := NewCacheManager(config)
+	if err != nil {
+		return err
+	}
+
+	globalManager = manager
+	return nil
+}
+
+// ShutdownGlobalCache shuts down the global cache
+func ShutdownGlobalCache() error {
+	return CloseGlobalCache()
 }
 
 // LoadCacheConfigFromViper はViperからキャッシュ設定を読み込み
@@ -263,15 +296,15 @@ func GetCacheStats() *CacheStats {
 func FormatCacheStats(stats *CacheStats) string {
 	var sb strings.Builder
 
-	sb.WriteString("キャッシュ統計:\n")
-	sb.WriteString(fmt.Sprintf("  ヒット数: %d\n", stats.Hits))
-	sb.WriteString(fmt.Sprintf("  ミス数: %d\n", stats.Misses))
-	sb.WriteString(fmt.Sprintf("  ヒット率: %.2f%%\n", stats.HitRate()*100))
-	sb.WriteString(fmt.Sprintf("  エントリ数: %d\n", stats.Entries))
-	sb.WriteString(fmt.Sprintf("  サイズ: %s\n", formatSize(stats.Size)))
+	sb.WriteString("Cache Statistics:\n")
+	sb.WriteString(fmt.Sprintf("  Hits: %d\n", stats.Hits))
+	sb.WriteString(fmt.Sprintf("  Misses: %d\n", stats.Misses))
+	sb.WriteString(fmt.Sprintf("  Hit Rate: %.2f%%\n", stats.HitRate()*100))
+	sb.WriteString(fmt.Sprintf("  Entries: %d\n", stats.Entries))
+	sb.WriteString(fmt.Sprintf("  Size: %s\n", formatSize(stats.Size)))
 
 	if !stats.LastCleanup.IsZero() {
-		sb.WriteString(fmt.Sprintf("  最終クリーンアップ: %s\n", stats.LastCleanup.Format("2006-01-02 15:04:05")))
+		sb.WriteString(fmt.Sprintf("  Last Cleanup: %s\n", stats.LastCleanup.Format("2006-01-02 15:04:05")))
 	}
 
 	return sb.String()
