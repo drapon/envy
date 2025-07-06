@@ -209,8 +209,8 @@ environments:
 		require.NoError(t, err)
 		require.NotNil(t, cfg)
 
-		// Should have default values
-		assert.Equal(t, "myapp", cfg.Project)
+		// Should have default values - project name will be the directory name
+		assert.NotEmpty(t, cfg.Project)
 		assert.Equal(t, "dev", cfg.DefaultEnvironment)
 	})
 

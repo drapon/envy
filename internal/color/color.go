@@ -28,7 +28,14 @@ var (
 // Initialize checks environment for color settings.
 func Initialize() {
 	// Check if colors should be disabled
-	if viper.GetBool("no_color") || os.Getenv("NO_COLOR") != "" {
+	// Check environment variable first as viper might not be initialized
+	if os.Getenv("NO_COLOR") != "" {
+		color.NoColor = true
+		return
+	}
+	
+	// Check viper config if available
+	if viper.IsSet("no_color") && viper.GetBool("no_color") {
 		color.NoColor = true
 	}
 }
