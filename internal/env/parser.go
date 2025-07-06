@@ -390,9 +390,17 @@ func ParseLargeWithContext(ctx context.Context, r io.Reader) (*File, error) {
 		select {
 		case variable, ok := <-result.Variables:
 			if !ok {
-				// Channel closed, check for completion
+				// Channel closed, wait for done signal
 				select {
 				case <-result.Done:
+					// Check for any final errors
+					select {
+					case err := <-result.Errors:
+						if err != nil {
+							return nil, err
+						}
+					default:
+					}
 					return file, nil
 				case err := <-result.Errors:
 					return nil, err
