@@ -23,12 +23,12 @@ func NewLocalStackHelper() *LocalStackHelper {
 	if endpoint == "" {
 		endpoint = "http://localhost:4566"
 	}
-	
+
 	region := os.Getenv("AWS_REGION")
 	if region == "" {
 		region = "us-east-1"
 	}
-	
+
 	return &LocalStackHelper{
 		endpoint: endpoint,
 		region:   region,
@@ -61,17 +61,17 @@ func (h *LocalStackHelper) Cleanup(ctx context.Context) error {
 // WaitForLocalStack waits until LocalStack is fully started
 func (h *LocalStackHelper) WaitForLocalStack(timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
-	
+
 	for time.Now().Before(deadline) {
 		if h.IsRunning() {
 			// Wait a bit for services to fully start
 			time.Sleep(2 * time.Second)
 			return nil
 		}
-		
+
 		time.Sleep(1 * time.Second)
 	}
-	
+
 	return fmt.Errorf("LocalStack did not become ready within %v", timeout)
 }
 
@@ -82,6 +82,6 @@ func (h *LocalStackHelper) GetLocalStackStatus() map[string]interface{} {
 		"region":   h.region,
 		"running":  h.IsRunning(),
 	}
-	
+
 	return status
 }

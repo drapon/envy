@@ -81,7 +81,7 @@ func TestRunCache(t *testing.T) {
 
 		// Add test data
 		cacheManager.Set("test_key", "test_value", 1*time.Hour)
-		
+
 		// Verify data exists
 		_, found := cacheManager.Get("test_key")
 		assert.True(t, found)

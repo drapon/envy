@@ -166,7 +166,7 @@ func (c *Config) Validate() error {
 	// フォーマットの検証
 	validFormats := map[string]bool{
 		FormatJSON: true,
-		"console": true,
+		"console":  true,
 	}
 	if !validFormats[c.Format] {
 		return fmt.Errorf("無効なログフォーマット: %s", c.Format)
@@ -174,9 +174,9 @@ func (c *Config) Validate() error {
 
 	// 出力先の検証
 	validOutputs := map[string]bool{
-		"stdout": true,
+		"stdout":   true,
 		OutputFile: true,
-		"syslog": true,
+		"syslog":   true,
 	}
 	if !validOutputs[c.Output] {
 		return fmt.Errorf("無効な出力先: %s", c.Output)

@@ -18,7 +18,7 @@ func TestNewCommand(t *testing.T) {
 
 	t.Run("command_structure", func(t *testing.T) {
 		cmd := NewCommand()
-		
+
 		assert.Equal(t, "version", cmd.Use)
 		assert.Equal(t, "Show version information", cmd.Short)
 		assert.NotEmpty(t, cmd.Long)
@@ -167,7 +167,7 @@ func TestRunVersion(t *testing.T) {
 func TestVersionOptions(t *testing.T) {
 	t.Run("default_options", func(t *testing.T) {
 		opts := &Options{}
-		
+
 		assert.False(t, opts.Detailed)
 		assert.False(t, opts.CheckUpdate)
 		assert.False(t, opts.NoColor)
@@ -181,7 +181,7 @@ func TestVersionOptions(t *testing.T) {
 			NoColor:      true,
 			UpdatePrompt: true,
 		}
-		
+
 		assert.True(t, opts.Detailed)
 		assert.True(t, opts.CheckUpdate)
 		assert.True(t, opts.NoColor)
@@ -257,7 +257,7 @@ func TestVersionCommandIntegration(t *testing.T) {
 
 	t.Run("command_execution", func(t *testing.T) {
 		cmd := NewCommand()
-		
+
 		// Capture output
 		oldStdout := os.Stdout
 		r, w, _ := os.Pipe()
@@ -282,7 +282,7 @@ func TestVersionCommandIntegration(t *testing.T) {
 
 	t.Run("command_with_detailed_flag", func(t *testing.T) {
 		cmd := NewCommand()
-		
+
 		// Capture output
 		oldStdout := os.Stdout
 		r, w, _ := os.Pipe()

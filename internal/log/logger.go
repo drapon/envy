@@ -197,11 +197,11 @@ func InitTestLogger() *zap.Logger {
 	cfg.DisableStacktrace = true
 	cfg.OutputPaths = []string{"stdout"}
 	cfg.ErrorOutputPaths = []string{"stderr"}
-	
+
 	logger, _ := cfg.Build()
 	globalLogger = logger
 	globalSugar = logger.Sugar()
-	
+
 	return logger
 }
 

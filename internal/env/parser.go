@@ -202,14 +202,14 @@ func (f *File) WriteWithContext(ctx context.Context, w io.Writer) error {
 				sb.WriteString(" # ")
 				sb.WriteString(variable.Comment)
 			}
-			
+
 			// Use the variable's line number if it has one, otherwise use current line
 			lineNum := variable.Line
 			if lineNum == 0 {
 				lineNum = currentLine
 				currentLine++
 			}
-			
+
 			lines[lineNum] = sb.String()
 			if lineNum > maxLine {
 				maxLine = lineNum

@@ -296,7 +296,7 @@ func executeCommand(args []string, envVars []string) error {
 
 	// TODO: Implement platform-specific process management
 	// For now, commenting out Unix-specific code for Windows compatibility
-	
+
 	// Handle signals
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)

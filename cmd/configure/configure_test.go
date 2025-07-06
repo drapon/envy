@@ -58,7 +58,7 @@ func TestRunConfigure(t *testing.T) {
 		// Create a temporary directory for test
 		helper := testutil.NewTestHelper(t)
 		defer helper.Cleanup()
-		
+
 		tempDir := helper.TempDir()
 		testutil.ChangeDir(t, tempDir)
 
@@ -71,7 +71,7 @@ func TestRunConfigure(t *testing.T) {
 		// Run configure
 		cmd := &cobra.Command{}
 		err := runConfigure(cmd, []string{})
-		
+
 		assert.NoError(t, err)
 
 		// Verify configuration file was created
@@ -100,7 +100,7 @@ func TestConfigureNonInteractive(t *testing.T) {
 		// Create a temporary directory for test
 		helper := testutil.NewTestHelper(t)
 		defer helper.Cleanup()
-		
+
 		tempDir := helper.TempDir()
 		testutil.ChangeDir(t, tempDir)
 
@@ -128,7 +128,7 @@ func TestConfigureNonInteractive(t *testing.T) {
 		// Create a temporary directory for test
 		helper := testutil.NewTestHelper(t)
 		defer helper.Cleanup()
-		
+
 		tempDir := helper.TempDir()
 		testutil.ChangeDir(t, tempDir)
 
@@ -151,16 +151,16 @@ func TestConfigureNonInteractive(t *testing.T) {
 		// Load and verify configuration
 		cfg, err := config.Load(".envyrc")
 		require.NoError(t, err)
-		assert.Equal(t, "test-project", cfg.Project) // Should preserve existing value
+		assert.Equal(t, "test-project", cfg.Project)      // Should preserve existing value
 		assert.Equal(t, "ap-northeast-1", cfg.AWS.Region) // Should be updated
-		assert.Equal(t, "default", cfg.AWS.Profile) // Should use default
+		assert.Equal(t, "default", cfg.AWS.Profile)       // Should use default
 	})
 
 	t.Run("invalid_configuration", func(t *testing.T) {
 		// Create a temporary directory for test
 		helper := testutil.NewTestHelper(t)
 		defer helper.Cleanup()
-		
+
 		tempDir := helper.TempDir()
 		testutil.ChangeDir(t, tempDir)
 
@@ -185,7 +185,7 @@ func TestConfigureNonInteractive(t *testing.T) {
 		// Create a temporary directory for test
 		helper := testutil.NewTestHelper(t)
 		defer helper.Cleanup()
-		
+
 		tempDir := helper.TempDir()
 		testutil.ChangeDir(t, tempDir)
 
@@ -193,7 +193,7 @@ func TestConfigureNonInteractive(t *testing.T) {
 		readOnlyDir := filepath.Join(tempDir, "readonly")
 		err := os.Mkdir(readOnlyDir, 0555)
 		require.NoError(t, err)
-		
+
 		testutil.ChangeDir(t, readOnlyDir)
 
 		// Set test values
@@ -216,7 +216,7 @@ func TestConfigureIntegration(t *testing.T) {
 		// Create a temporary directory for test
 		helper := testutil.NewTestHelper(t)
 		defer helper.Cleanup()
-		
+
 		tempDir := helper.TempDir()
 		testutil.ChangeDir(t, tempDir)
 
@@ -242,7 +242,7 @@ func TestConfigureIntegration(t *testing.T) {
 		assert.Equal(t, "us-west-2", cfg.AWS.Region)
 		assert.Equal(t, "test-profile", cfg.AWS.Profile)
 		assert.Equal(t, "development", cfg.DefaultEnvironment)
-		
+
 		// Verify default values are present
 		assert.NotEmpty(t, cfg.Project)
 		assert.Len(t, cfg.Environments, 1) // Should have default environment

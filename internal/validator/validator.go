@@ -54,7 +54,7 @@ const (
 	FixTypeSetDefault     FixType = "set_default"
 	FixTypeCorrectValue   FixType = "correct_value"
 	FixTypeRemoveVariable FixType = "remove_variable"
-	
+
 	// Common type names
 	TypeInt   = "int"
 	TypeFloat = "float"

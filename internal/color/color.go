@@ -33,7 +33,7 @@ func Initialize() {
 		color.NoColor = true
 		return
 	}
-	
+
 	// Check viper config if available
 	if viper.IsSet("no_color") && viper.GetBool("no_color") {
 		color.NoColor = true
