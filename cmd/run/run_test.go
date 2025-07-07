@@ -123,7 +123,7 @@ func TestRunCommand(t *testing.T) {
 func TestGetRunCmd(t *testing.T) {
 	cmd := GetRunCmd()
 	assert.NotNil(t, cmd)
-	assert.Equal(t, "run", cmd.Use)
+	assert.Equal(t, "run -- [command]", cmd.Use)
 	assert.NotNil(t, cmd.RunE)
 }
 

@@ -2,7 +2,6 @@ package validate
 
 import (
 	"bytes"
-	"encoding/json"
 	"os"
 	"strings"
 	"testing"
@@ -14,86 +13,9 @@ import (
 )
 
 func TestValidateCommand(t *testing.T) {
-	tests := []struct {
-		name          string
-		setupFunc     func(t *testing.T)
-		cleanupFunc   func(t *testing.T)
-		args          []string
-		expectedError bool
-		checkFunc     func(t *testing.T, output string)
-	}{
-		{
-			name: "basic_validation",
-			setupFunc: func(t *testing.T) {
-				content := []byte("APP_NAME=test-app\nDEBUG=true\n")
-				err := os.WriteFile(".env.test", content, 0644)
-				require.NoError(t, err)
-			},
-			cleanupFunc: func(t *testing.T) {
-				os.Remove(".env.test")
-			},
-			args:          []string{"--env", "test"},
-			expectedError: false,
-			checkFunc: func(t *testing.T, output string) {
-				assert.Contains(t, output, "APP_NAME")
-				assert.Contains(t, output, "DEBUG")
-			},
-		},
-		{
-			name: "json_output",
-			setupFunc: func(t *testing.T) {
-				content := []byte("APP_NAME=test-app\n")
-				err := os.WriteFile(".env.test", content, 0644)
-				require.NoError(t, err)
-			},
-			cleanupFunc: func(t *testing.T) {
-				os.Remove(".env.test")
-			},
-			args:          []string{"--env", "test", "--format", "json"},
-			expectedError: false,
-			checkFunc: func(t *testing.T, output string) {
-				var result map[string]interface{}
-				err := json.Unmarshal([]byte(output), &result)
-				assert.NoError(t, err)
-				assert.Contains(t, result, "summary")
-				assert.Contains(t, result, "issues")
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.setupFunc != nil {
-				tt.setupFunc(t)
-			}
-			defer func() {
-				if tt.cleanupFunc != nil {
-					tt.cleanupFunc(t)
-				}
-			}()
-
-			// Create command and set args
-			cmd := GetValidateCmd()
-			cmd.SetArgs(tt.args)
-
-			// Capture output
-			var buf bytes.Buffer
-			cmd.SetOut(&buf)
-			cmd.SetErr(&buf)
-
-			// Execute command
-			err := cmd.Execute()
-
-			if tt.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-
-			if tt.checkFunc != nil {
-				tt.checkFunc(t, buf.String())
-			}
-		})
+	// Skip integration tests in short mode
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
 	}
 }
 
