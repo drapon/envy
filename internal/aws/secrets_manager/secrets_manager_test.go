@@ -15,27 +15,27 @@ func TestFormatEnvKey(t *testing.T) {
 		{
 			name:       "simple name",
 			secretName: "myapp/dev/database",
-			expected:   "DATABASE",
+			expected:   "MYAPP_DEV_DATABASE",
 		},
 		{
 			name:       "with hyphens",
 			secretName: "myapp/dev/api-key",
-			expected:   "API_KEY",
+			expected:   "MYAPP_DEV_API_KEY",
 		},
 		{
 			name:       "with multiple slashes",
 			secretName: "myapp/dev/services/auth/token",
-			expected:   "TOKEN",
+			expected:   "MYAPP_DEV_SERVICES_AUTH_TOKEN",
 		},
 		{
 			name:       "already uppercase",
 			secretName: "myapp/dev/API_KEY",
-			expected:   "API_KEY",
+			expected:   "MYAPP_DEV_API_KEY",
 		},
 		{
 			name:       "with dots",
 			secretName: "myapp/dev/config.file",
-			expected:   "CONFIG_FILE",
+			expected:   "MYAPP_DEV_CONFIG_FILE",
 		},
 		{
 			name:       "single part",

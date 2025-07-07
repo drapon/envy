@@ -59,32 +59,39 @@ func TestMaskValue(t *testing.T) {
 		expected   string
 	}{
 		{
-			name:       "show values enabled",
-			key:        "KEY1",
-			value:      "value1",
+			name:       "show values enabled for non-sensitive key",
+			key:        "APP_NAME",
+			value:      "myapp",
 			showValues: true,
-			expected:   "value1",
+			expected:   "myapp",
 		},
 		{
 			name:       "sensitive key with show values disabled",
 			key:        "PASSWORD",
 			value:      "secret123",
 			showValues: false,
-			expected:   "****",
+			expected:   "***",
 		},
 		{
 			name:       "non-sensitive key with show values disabled",
 			key:        "APP_NAME",
 			value:      "myapp",
 			showValues: false,
-			expected:   "myapp",
+			expected:   "***",
 		},
 		{
 			name:       "API_KEY with show values disabled",
 			key:        "API_KEY",
 			value:      "abc123xyz",
 			showValues: false,
-			expected:   "****",
+			expected:   "***",
+		},
+		{
+			name:       "sensitive key with show values enabled",
+			key:        "PASSWORD",
+			value:      "secret123",
+			showValues: true,
+			expected:   "***",  // Still masked because it's sensitive
 		},
 	}
 

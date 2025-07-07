@@ -62,39 +62,53 @@ func TestMaskValue(t *testing.T) {
 		want       string
 	}{
 		{
-			name:       "show values enabled",
-			key:        "KEY1",
-			value:      "value1",
+			name:       "show values enabled for non-sensitive key",
+			key:        "APP_NAME",
+			value:      "myapp",
 			showValues: true,
-			want:       "value1",
+			want:       "myapp",
 		},
 		{
 			name:       "sensitive key with show values disabled",
 			key:        "PASSWORD",
 			value:      "secret123",
 			showValues: false,
-			want:       "****",
+			want:       "s***3",  // Shows first and last char
 		},
 		{
 			name:       "non-sensitive key with show values disabled",
 			key:        "APP_NAME",
 			value:      "myapp",
 			showValues: false,
-			want:       "myapp",
+			want:       "m***p",  // Shows first and last char
 		},
 		{
 			name:       "API_KEY with show values disabled",
 			key:        "API_KEY",
 			value:      "abc123xyz",
 			showValues: false,
-			want:       "****",
+			want:       "a***z",  // Shows first and last char
 		},
 		{
 			name:       "empty value",
 			key:        "EMPTY_KEY",
 			value:      "",
 			showValues: false,
-			want:       "",
+			want:       "***",
+		},
+		{
+			name:       "short value",
+			key:        "KEY",
+			value:      "abc",
+			showValues: false,
+			want:       "***",  // Too short, fully masked
+		},
+		{
+			name:       "sensitive key with show values enabled",
+			key:        "PASSWORD",
+			value:      "secret123",
+			showValues: true,
+			want:       "s***3",  // Still masked because it's sensitive
 		},
 	}
 

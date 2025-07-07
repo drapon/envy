@@ -22,6 +22,7 @@ var (
 	strict      bool
 	format      string
 	fix         bool
+	verbose     bool
 )
 
 // validateCmd represents the validate command
@@ -55,6 +56,11 @@ properly formatted, and meet any defined validation criteria.`,
 	RunE: runValidate,
 }
 
+// GetValidateCmd returns the validate command
+func GetValidateCmd() *cobra.Command {
+	return validateCmd
+}
+
 func init() {
 	root.GetRootCmd().AddCommand(validateCmd)
 
@@ -65,6 +71,7 @@ func init() {
 	validateCmd.Flags().BoolVar(&strict, "strict", false, "Treat warnings as errors")
 	validateCmd.Flags().StringVar(&format, "format", "text", "Output format (text/json)")
 	validateCmd.Flags().BoolVar(&fix, "fix", false, "Auto-fix issues where possible")
+	validateCmd.Flags().BoolVar(&verbose, "verbose", false, "Show detailed information about all variables")
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {

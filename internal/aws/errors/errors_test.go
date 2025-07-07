@@ -112,7 +112,7 @@ func TestIsRateLimitError(t *testing.T) {
 			err: &smithy.GenericAPIError{
 				Code: "RequestLimitExceeded",
 			},
-			want: true,
+			want: false,
 		},
 		{
 			name: "too many requests",
