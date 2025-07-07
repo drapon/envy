@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -357,7 +358,16 @@ func TestFile_WriteFile(t *testing.T) {
 		// Verify file permissions
 		info, err := os.Stat(path)
 		require.NoError(t, err)
-		assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
+		
+		// Windows handles permissions differently
+		if runtime.GOOS == "windows" {
+			// On Windows, file permissions are often 0666 (0x1b6) regardless of what we set
+			// This is due to Windows ACL system being different from Unix permissions
+			assert.True(t, info.Mode().Perm() == 0666 || info.Mode().Perm() == 0600,
+				"Expected permissions to be 0666 or 0600, got %v", info.Mode().Perm())
+		} else {
+			assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
+		}
 	})
 
 	t.Run("write_to_invalid_path", func(t *testing.T) {
