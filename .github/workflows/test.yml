@@ -52,16 +52,23 @@ jobs:
       - name: Get dependencies
         run: go mod download
 
-      - name: Run unit tests
+      - name: Run unit tests (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Windows: Run tests without coverage
+          # List all packages first for debugging
+          Write-Host "Listing all packages..."
+          go list ./...
+          Write-Host "`nRunning tests..."
+          go test -v -short -timeout 5m ./cmd/... ./internal/... ./pkg/...
+
+      - name: Run unit tests (Linux/macOS)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            # Windows: Run tests without coverage to avoid file path issues
-            go test -v -short -timeout 5m ./cmd/... ./internal/... ./pkg/...
-          else
-            # Linux/macOS: Run tests with coverage
-            go test -v -short -coverprofile=coverage.out -covermode=atomic -timeout 5m ./cmd/... ./internal/... ./pkg/...
-          fi
+          # Linux/macOS: Run tests with coverage
+          go test -v -short -coverprofile=coverage.out -covermode=atomic -timeout 5m ./cmd/... ./internal/... ./pkg/...
 
       - name: Generate coverage report
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23'
