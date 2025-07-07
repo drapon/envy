@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -17,6 +18,7 @@ type Client struct {
 	secretsClient *secretsmanager.Client
 	region        string
 	profile       string
+	mu            sync.Mutex
 }
 
 // Options for creating a new AWS client
@@ -56,6 +58,9 @@ func NewClient(ctx context.Context, opts Options) (*Client, error) {
 
 // SSM returns the SSM (Parameter Store) client
 func (c *Client) SSM() *ssm.Client {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	
 	if c.ssmClient == nil {
 		c.ssmClient = ssm.NewFromConfig(c.config)
 	}
@@ -64,6 +69,9 @@ func (c *Client) SSM() *ssm.Client {
 
 // SecretsManager returns the Secrets Manager client
 func (c *Client) SecretsManager() *secretsmanager.Client {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	
 	if c.secretsClient == nil {
 		c.secretsClient = secretsmanager.NewFromConfig(c.config)
 	}
