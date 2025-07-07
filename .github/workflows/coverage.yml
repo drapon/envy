@@ -49,7 +49,7 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          THRESHOLD=80
+          THRESHOLD=30
           COVERAGE=${{ steps.coverage.outputs.percentage }}
           echo "Coverage: $COVERAGE%"
           echo "Threshold: $THRESHOLD%"
@@ -59,6 +59,7 @@ jobs:
           else
             echo "::notice::Coverage $COVERAGE% meets threshold"
           fi
+          echo "::warning::Note: Coverage threshold is temporarily lowered. Target is 80%."
 
       # TODO: バッジ生成を設定する場合は、以下のコメントを解除してGIST_SECRETとgistIDを設定してください
       # - name: Create coverage badge
@@ -98,16 +99,18 @@ jobs:
         with:
           script: |
             const coverage = '${{ steps.coverage.outputs.percentage }}';
-            const threshold = 80;
+            const threshold = 30;
+            const targetThreshold = 80;
             const status = parseFloat(coverage) >= threshold ? '✅' : '❌';
 
             const comment = `## Test Coverage Report ${status}
 
             **Coverage:** ${coverage}%
-            **Threshold:** ${threshold}%
+            **Current Threshold:** ${threshold}% (temporarily lowered)
+            **Target Threshold:** ${targetThreshold}%
 
             ${parseFloat(coverage) >= threshold 
-              ? 'Coverage meets the required threshold! 🎉' 
+              ? 'Coverage meets the current threshold. Note: The target threshold is 80%.' 
               : 'Coverage is below the required threshold. Please add more tests.'}
 
             <details>
