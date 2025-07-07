@@ -79,7 +79,7 @@ func TestLoad(t *testing.T) {
 		assert.Equal(t, "us-east-1", cfg.AWS.Region)
 
 		// Check environments
-		assert.Len(t, cfg.Environments, 3)
+		assert.Len(t, cfg.Environments, 4)
 
 		// Check dev environment
 		devEnv, exists := cfg.Environments["dev"]
