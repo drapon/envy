@@ -151,7 +151,9 @@ func TestRateLimitedBatchProcessor(t *testing.T) {
 		t.Skip("Skipping rate limit test in short mode")
 	}
 
-	ctx := context.Background()
+	// Add timeout to avoid hanging in CI
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	processor := NewRateLimitedBatchProcessor(ctx, 2, 5, 3,
 		WithBatchSize(2),
