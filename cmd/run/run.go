@@ -57,6 +57,11 @@ and executes the specified command with those variables available.`,
 	RunE: runCommand,
 }
 
+// GetRunCmd returns the run command
+func GetRunCmd() *cobra.Command {
+	return runCmd
+}
+
 func init() {
 	root.GetRootCmd().AddCommand(runCmd)
 
