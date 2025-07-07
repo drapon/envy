@@ -54,7 +54,14 @@ jobs:
 
       - name: Run unit tests
         shell: bash
-        run: go test -v -short -coverprofile=coverage.out -covermode=atomic -timeout 5m ./cmd/... ./internal/... ./pkg/...
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Windows: Run tests without coverage to avoid file path issues
+            go test -v -short -timeout 5m ./cmd/... ./internal/... ./pkg/...
+          else
+            # Linux/macOS: Run tests with coverage
+            go test -v -short -coverprofile=coverage.out -covermode=atomic -timeout 5m ./cmd/... ./internal/... ./pkg/...
+          fi
 
       - name: Generate coverage report
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23'
