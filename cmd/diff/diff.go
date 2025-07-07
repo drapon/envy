@@ -49,6 +49,11 @@ or between different environments or files.`,
 	RunE: runDiff,
 }
 
+// GetDiffCmd returns the diff command.
+func GetDiffCmd() *cobra.Command {
+	return diffCmd
+}
+
 func init() {
 	root.GetRootCmd().AddCommand(diffCmd)
 

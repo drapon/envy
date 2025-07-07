@@ -60,6 +60,11 @@ including tree view, filtering, and value masking for sensitive variables.`,
 	RunE: runList,
 }
 
+// GetListCmd returns the list command.
+func GetListCmd() *cobra.Command {
+	return listCmd
+}
+
 func init() {
 	root.GetRootCmd().AddCommand(listCmd)
 
