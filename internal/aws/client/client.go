@@ -60,7 +60,7 @@ func NewClient(ctx context.Context, opts Options) (*Client, error) {
 func (c *Client) SSM() *ssm.Client {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if c.ssmClient == nil {
 		c.ssmClient = ssm.NewFromConfig(c.config)
 	}
@@ -71,7 +71,7 @@ func (c *Client) SSM() *ssm.Client {
 func (c *Client) SecretsManager() *secretsmanager.Client {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if c.secretsClient == nil {
 		c.secretsClient = secretsmanager.NewFromConfig(c.config)
 	}
