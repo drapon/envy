@@ -57,7 +57,7 @@ and executes the specified command with those variables available.`,
 	RunE: runCommand,
 }
 
-// GetRunCmd returns the run command
+// GetRunCmd returns the run command.
 func GetRunCmd() *cobra.Command {
 	return runCmd
 }

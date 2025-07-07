@@ -56,7 +56,7 @@ properly formatted, and meet any defined validation criteria.`,
 	RunE: runValidate,
 }
 
-// GetValidateCmd returns the validate command
+// GetValidateCmd returns the validate command.
 func GetValidateCmd() *cobra.Command {
 	return validateCmd
 }
