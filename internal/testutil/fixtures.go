@@ -229,6 +229,12 @@ environments:
     path: /myapp/dev/
     use_secrets_manager: false
     
+  test:
+    files:
+      - .env.test
+    path: /myapp/test/
+    use_secrets_manager: false
+    
   staging:
     files:
       - .env.staging
