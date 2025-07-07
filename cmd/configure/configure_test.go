@@ -3,6 +3,7 @@ package configure
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/drapon/envy/internal/config"
@@ -203,8 +204,19 @@ func TestConfigureNonInteractive(t *testing.T) {
 
 		// Run non-interactive configuration
 		err = configureNonInteractive()
+		
+		// Windows may handle read-only directories differently
+		if runtime.GOOS == "windows" {
+			// On Windows, the save might succeed or fail differently
+			if err == nil {
+				t.Skip("Skipping on Windows - read-only directory behavior differs")
+			}
+		}
+		
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to save configuration")
+		if err != nil {
+			assert.Contains(t, err.Error(), "failed to save configuration")
+		}
 	})
 }
 
