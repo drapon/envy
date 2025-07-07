@@ -91,7 +91,8 @@ jobs:
           file: ./coverage.out
           flags: unittests
           name: codecov-coverage
-          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       - name: Comment PR with coverage
         if: github.event_name == 'pull_request'

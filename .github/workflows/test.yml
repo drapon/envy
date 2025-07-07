@@ -90,6 +90,8 @@ jobs:
           file: ./coverage.out
           flags: unittests
           name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       - name: Upload coverage artifacts
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23' && !github.event.act
