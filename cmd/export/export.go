@@ -26,9 +26,11 @@ var (
 	output      string
 	name        string
 	namespace   string
-	from        string
-	filter      string
+	source      string
+	include     string
 	exclude     string
+	maskSecrets bool
+	sort        bool
 )
 
 // exportCmd represents the export command
@@ -66,6 +68,11 @@ Kubernetes ConfigMaps, or other supported formats.`,
 	RunE: runExport,
 }
 
+// GetExportCmd returns the export command.
+func GetExportCmd() *cobra.Command {
+	return exportCmd
+}
+
 func init() {
 	root.GetRootCmd().AddCommand(exportCmd)
 
@@ -75,9 +82,11 @@ func init() {
 	exportCmd.Flags().StringVarP(&output, "output", "o", "", "Output file (stdout if not specified)")
 	exportCmd.Flags().StringVarP(&name, "name", "n", "", "Resource name (for k8s exports)")
 	exportCmd.Flags().String("namespace", "default", "Kubernetes namespace")
-	exportCmd.Flags().String("from", "local", "Source (local/aws)")
-	exportCmd.Flags().String("filter", "", "Filter pattern for variables to export")
-	exportCmd.Flags().String("exclude", "", "Pattern for variables to exclude")
+	exportCmd.Flags().StringVarP(&source, "source", "s", "local", "Source (local/aws)")
+	exportCmd.Flags().StringVarP(&include, "include", "i", "", "Filter pattern for variables to export")
+	exportCmd.Flags().StringVarP(&exclude, "exclude", "x", "", "Pattern for variables to exclude")
+	exportCmd.Flags().BoolVar(&maskSecrets, "mask-secrets", false, "Mask sensitive values in output")
+	exportCmd.Flags().BoolVar(&sort, "sort", false, "Sort variables alphabetically")
 
 	// Bind namespace flag to viper
 	viper.BindPFlag("export.namespace", exportCmd.Flags().Lookup("namespace"))
@@ -100,7 +109,7 @@ func runExport(cmd *cobra.Command, args []string) error {
 
 	// Get environment file
 	var envFile *env.File
-	if from == "aws" {
+	if source == "aws" {
 		// Pull from AWS
 		envFile, err = pullFromAWS(ctx, cfg, environment)
 		if err != nil {
@@ -115,7 +124,7 @@ func runExport(cmd *cobra.Command, args []string) error {
 	}
 
 	// Apply filters
-	envFile = applyFilters(envFile, filter, exclude)
+	envFile = applyFilters(envFile, include, exclude)
 
 	// Validate required parameters for specific formats
 	if (format == "k8s-configmap" || format == "k8s-secret") && name == "" {
