@@ -70,6 +70,9 @@ jobs:
           echo "Threshold: $THRESHOLD%"
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "Coverage $COVERAGE% is below threshold $THRESHOLD%"
+            echo "⚠️  Coverage is below 80%. More tests need to be implemented."
+            echo "Current coverage breakdown:"
+            go tool cover -func=coverage.out | grep -E "(cmd/|internal/|pkg/)" | sort
             exit 1
           else
             echo "Coverage $COVERAGE% meets threshold"
